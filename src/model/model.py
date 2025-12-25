@@ -295,6 +295,12 @@ class TFTModel:
         y_true: (B,) o (B, horizon)
         y_pred: (B, num_quantiles) o (B, horizon, num_quantiles)
         """
+        # Asegurar que y_true tenga shape compatible
+        # - horizon=1: y_true (B,) o (B,1)
+        # - horizon>1: y_true (B,H)
+        if len(y_true.shape) == 2 and y_true.shape[-1] == 1:
+            y_true = tf.squeeze(y_true, axis=-1)
+
         losses = []
         for i, q in enumerate(self.quantiles):
             if len(y_pred.shape) == 2:
@@ -307,6 +313,21 @@ class TFTModel:
             losses.append(loss_q)
         
         return tf.reduce_mean(tf.stack(losses, axis=-1))
+
+    def median_mae(self, y_true, y_pred):
+        """MAE calculado solo con el cuantil 0.5 (mediana) para evitar mismatch de shapes."""
+        if len(y_pred.shape) == 2:
+            # (B, Q)
+            median_idx = 1 if self.num_quantiles >= 2 else 0
+            y_hat = y_pred[:, median_idx]
+        else:
+            # (B, H, Q)
+            median_idx = 1 if self.num_quantiles >= 2 else 0
+            y_hat = y_pred[:, :, median_idx]
+
+        if len(y_true.shape) == 2 and y_true.shape[-1] == 1:
+            y_true = tf.squeeze(y_true, axis=-1)
+        return tf.reduce_mean(tf.abs(y_true - y_hat))
     
     def compile(self, learning_rate: float = 1e-3):
         """Compila el modelo con la pérdida de cuantiles."""
@@ -316,7 +337,7 @@ class TFTModel:
         self.model.compile(
             optimizer=Adam(learning_rate=learning_rate),
             loss=self.quantile_loss,
-            metrics=["mae"]
+            metrics=[self.median_mae],
         )
         return self
     
