@@ -1,0 +1,910 @@
+[
+  {
+    "id": 15152,
+    "nombre": "Producto Interno Bruto (PIB) real, Trimestral, base: 2015, Ajuste estacional",
+    "categoria": "Producto Interno Bruto",
+    "valor": 0.0,
+    "unidad": "Miles de millones COP, base 2015",
+    "idTipoDato": 0,
+    "descripcionTipoDato": "Dato fin de trimestre",
+    "idPeriodicidad": 12,
+    "descripcionPeriodicidad": "Dato fin de trimestre",
+    "serieTipoDatos": "12",
+    "serieTipoCalculos": "14|21",
+    "fechaInicial": {
+      "year": 2005,
+      "month": 2,
+      "dayOfMonth": 31,
+      "hourOfDay": 0,
+      "minute": 0,
+      "second": 0
+    },
+    "fechaFinal": {
+      "year": 2025,
+      "month": 8,
+      "dayOfMonth": 30,
+      "hourOfDay": 0,
+      "minute": 0,
+      "second": 0
+    },
+    "fechaInicialFormateada": "31 de marzo  de  2005",
+    "fechaFinalFormateada": "30 de septiembre  de  2025",
+    "fechaProximoCargue": {
+      "year": 2026,
+      "month": 1,
+      "dayOfMonth": 19,
+      "hourOfDay": 0,
+      "minute": 0,
+      "second": 0
+    },
+    "fechaProximoCargueFormateada": "19 de febrero de 2026",
+    "fechaUltimoCargue": {
+      "year": 2025,
+      "month": 10,
+      "dayOfMonth": 25,
+      "hourOfDay": 0,
+      "minute": 0,
+      "second": 0
+    },
+    "fechaUltimoCargueFormateada": "25 de noviembre de 2025",
+    "idCategoria": 54,
+    "tiposCalculos": [
+      {
+        "idTipoDato": 14,
+        "descripcion": "Variación porcentual  trimestral",
+        "descripcionIngles": "Quarterly percentage change"
+      },
+      {
+        "idTipoDato": 21,
+        "descripcion": "Variación porcentual  año corrido",
+        "descripcionIngles": "Current year percentage change"
+      }
+    ],
+    "tiposPeriodicidades": [
+      {
+        "idTipoDato": 12,
+        "descripcion": "Dato fin de trimestre",
+        "descripcionIngles": "End of quarter data"
+      },
+      {
+        "idTipoDato": 14,
+        "descripcion": "Variación porcentual  trimestral",
+        "descripcionIngles": "Quarterly percentage change"
+      },
+      {
+        "idTipoDato": 21,
+        "descripcion": "Variación porcentual  año corrido",
+        "descripcionIngles": "Current year percentage change"
+      },
+      {
+        "idTipoDato": 14,
+        "descripcion": "Variación porcentual  trimestral",
+        "descripcionIngles": "Quarterly percentage change"
+      },
+      {
+        "idTipoDato": 21,
+        "descripcion": "Variación porcentual  año corrido",
+        "descripcionIngles": "Current year percentage change"
+      }
+    ],
+    "rank": 0,
+    "fuente": "Fuente: Departamento Administrativo Nacional de Estadística (DANE)",
+    "palabrasClavesEspanol": "produccion, produccion, trimestral, producto, interno, bruto, pib, crecimiento, constantes, precios constantes, precios,  desestacionalizada, actividad, actividad economica, actividad economica, pib real, real, , crecimiento, economico, crecimiento economico, crecimiento economico, economico, produccion interna bruta,  base 2015, 2015, ajuste estacional, ajuste, estacional, desestacionalizada, trimestral, miles de millones cop, ajuste estacional, precios constantes, base: 2015",
+    "idCargue": "PIB_BASE2015",
+    "numeroConsultas": 0,
+    "seriesRelacionadas": "15270|15131|15132|15133|15134|135|136|1|3",
+    "categoriasRelacionadas": "21|22|23|24|25|26",
+    "notas": "-",
+    "codigoSubCategoria": 827,
+    "descripcionSubCategoria": "Producto Interno Bruto - PIB",
+    "ordenBusqueda": 7300.0,
+    "fichaTecnica": "https://www.dane.gov.co/index.php/estadisticas-por-tema/cuentas-nacionales/cuentas-nacionales-trimestrales",
+    "baseSerie": "2015",
+    "categoriaNivel1": "Actividad económica, mercado laboral y cuentas financieras",
+    "categoriaNivel2": "Producto Interno Bruto",
+    "categoriaNivel3": "Producto Interno Bruto",
+    "descripcionCorta": "Trimestral, miles de millones COP, ajuste estacional, precios constantes, base: 2015",
+    "desestacionalizacion": "Ajuste estacional",
+    "etiquetaAtributo": "Categoría|Categoria2|Categoria3|Periodicidad|Periodo base|Ajuste estacional|Geografia|Precios|Periodo de referencia",
+    "fuenteCorta": "Departamento Administrativo Nacional de Estadística (DANE)",
+    "geografiaSerie": "Nacional",
+    "padreSerie": "253,1",
+    "periodoReferencia": "",
+    "precioSerie": "Precios constantes",
+    "valorAtributo": "Actividad económica y mercado laboral|Producto interno bruto|Producto interno bruto|Trimestral|2015|Ajuste estacional|Nacional|Precios constantes|",
+    "padreSerieDescripcion": "Producto Interno Bruto (PIB) real, ajuste estacional",
+    "ordenado": false,
+    "seleccionaHijo": false,
+    "unidadCorta": "Miles de millones COP",
+    "datoProducidoBanrep": "NO",
+    "numeroDecimales": 2,
+    "feErratas": "-",
+    "definicion": "El producto interno bruto (PIB) es el indicador más utilizado para caracterizar el estado de la economía en su conjunto y representa el resultado final de la actividad productiva dentro de un país. Esta medición es importante porque ofrece información sobre el tamaño de la economía y su desempeño, y sirve para hacer comparaciones frente a otros países. <br><br> El PIB mide el valor de mercado de todos los bienes y servicios finales, es decir, los que adquiere el consumidor final, que son producidos dentro de las fronteras de un país en un período determinado (generalmente un trimestre o un año).",
+    "data": [
+      [
+        1112245200000,
+        126681.06
+      ],
+      [
+        1120107600000,
+        128475.37
+      ],
+      [
+        1128056400000,
+        128744.63
+      ],
+      [
+        1136005200000,
+        130951.95
+      ],
+      [
+        1143781200000,
+        134141.09
+      ],
+      [
+        1151643600000,
+        136018.56
+      ],
+      [
+        1159592400000,
+        138621.26
+      ],
+      [
+        1167541200000,
+        140654.09
+      ],
+      [
+        1175317200000,
+        143181.29
+      ],
+      [
+        1183179600000,
+        145170.87
+      ],
+      [
+        1191128400000,
+        148142.37
+      ],
+      [
+        1199077200000,
+        149962.47
+      ],
+      [
+        1206939600000,
+        150565.22
+      ],
+      [
+        1214802000000,
+        151303.7
+      ],
+      [
+        1222750800000,
+        153275.8
+      ],
+      [
+        1230699600000,
+        150568.28
+      ],
+      [
+        1238475600000,
+        150948.41
+      ],
+      [
+        1246338000000,
+        152619.59
+      ],
+      [
+        1254286800000,
+        153929.38
+      ],
+      [
+        1262235600000,
+        155118.62
+      ],
+      [
+        1270011600000,
+        156710.82
+      ],
+      [
+        1277874000000,
+        159366.09
+      ],
+      [
+        1285822800000,
+        160351.58
+      ],
+      [
+        1293771600000,
+        163722.51
+      ],
+      [
+        1301547600000,
+        167189.4
+      ],
+      [
+        1309410000000,
+        169848.91
+      ],
+      [
+        1317358800000,
+        173174.61
+      ],
+      [
+        1325307600000,
+        174415.07
+      ],
+      [
+        1333170000000,
+        176300.25
+      ],
+      [
+        1341032400000,
+        178306.98
+      ],
+      [
+        1348981200000,
+        177313.36
+      ],
+      [
+        1356930000000,
+        179494.4
+      ],
+      [
+        1364706000000,
+        182542.2
+      ],
+      [
+        1372568400000,
+        186706.35
+      ],
+      [
+        1380517200000,
+        187959.88
+      ],
+      [
+        1388466000000,
+        190730.57
+      ],
+      [
+        1396242000000,
+        193493.5
+      ],
+      [
+        1404104400000,
+        194189.95
+      ],
+      [
+        1412053200000,
+        195930.27
+      ],
+      [
+        1420002000000,
+        197975.27
+      ],
+      [
+        1427778000000,
+        198990.54
+      ],
+      [
+        1435640400000,
+        200874.17
+      ],
+      [
+        1443589200000,
+        202627.95
+      ],
+      [
+        1451538000000,
+        202199.34
+      ],
+      [
+        1459400400000,
+        203965.26
+      ],
+      [
+        1467262800000,
+        204589.42
+      ],
+      [
+        1475211600000,
+        205828.68
+      ],
+      [
+        1483160400000,
+        207105.65
+      ],
+      [
+        1490936400000,
+        206560.22
+      ],
+      [
+        1498798800000,
+        207878.74
+      ],
+      [
+        1506747600000,
+        208585.54
+      ],
+      [
+        1514696400000,
+        209631.5
+      ],
+      [
+        1522472400000,
+        211237.13
+      ],
+      [
+        1530334800000,
+        212387.28
+      ],
+      [
+        1538283600000,
+        214529.63
+      ],
+      [
+        1546232400000,
+        215853.96
+      ],
+      [
+        1554008400000,
+        217540.34
+      ],
+      [
+        1561870800000,
+        219874.67
+      ],
+      [
+        1569819600000,
+        221140.58
+      ],
+      [
+        1577768400000,
+        222668.41
+      ],
+      [
+        1585630800000,
+        217261.97
+      ],
+      [
+        1593493200000,
+        183534.21
+      ],
+      [
+        1601442000000,
+        201547.98
+      ],
+      [
+        1609390800000,
+        215555.84
+      ],
+      [
+        1617166800000,
+        222083.13
+      ],
+      [
+        1625029200000,
+        217002.61
+      ],
+      [
+        1632978000000,
+        228192.54
+      ],
+      [
+        1640926800000,
+        238964.73
+      ],
+      [
+        1648702800000,
+        239985.25
+      ],
+      [
+        1656565200000,
+        243362.56
+      ],
+      [
+        1664514000000,
+        245265.2
+      ],
+      [
+        1672462800000,
+        244041.98
+      ],
+      [
+        1680238800000,
+        245972.29
+      ],
+      [
+        1688101200000,
+        244376.45
+      ],
+      [
+        1696050000000,
+        243806.16
+      ],
+      [
+        1703998800000,
+        245429.1
+      ],
+      [
+        1711861200000,
+        246414.51
+      ],
+      [
+        1719723600000,
+        247903.21
+      ],
+      [
+        1727672400000,
+        248950.46
+      ],
+      [
+        1735621200000,
+        251972.34
+      ],
+      [
+        1743397200000,
+        253122.06
+      ],
+      [
+        1751259600000,
+        254197.07
+      ],
+      [
+        1759208400000,
+        257342.26
+      ]
+    ]
+  },
+  {
+    "id": 15152,
+    "nombre": "Producto Interno Bruto (PIB) real, Trimestral, base: 2015, Ajuste estacional",
+    "categoria": "Producto Interno Bruto",
+    "valor": 0.0,
+    "unidad": "Miles de millones COP, base 2015",
+    "idTipoDato": 0,
+    "descripcionTipoDato": "Variación porcentual  trimestral",
+    "idPeriodicidad": 14,
+    "descripcionPeriodicidad": "Variación porcentual  trimestral",
+    "serieTipoDatos": "12",
+    "serieTipoCalculos": "14|21",
+    "fechaInicial": {
+      "year": 2005,
+      "month": 2,
+      "dayOfMonth": 31,
+      "hourOfDay": 0,
+      "minute": 0,
+      "second": 0
+    },
+    "fechaFinal": {
+      "year": 2025,
+      "month": 8,
+      "dayOfMonth": 30,
+      "hourOfDay": 0,
+      "minute": 0,
+      "second": 0
+    },
+    "fechaInicialFormateada": "31 de marzo  de  2005",
+    "fechaFinalFormateada": "30 de septiembre  de  2025",
+    "fechaProximoCargue": {
+      "year": 2026,
+      "month": 1,
+      "dayOfMonth": 19,
+      "hourOfDay": 0,
+      "minute": 0,
+      "second": 0
+    },
+    "fechaProximoCargueFormateada": "19 de febrero de 2026",
+    "fechaUltimoCargue": {
+      "year": 2025,
+      "month": 10,
+      "dayOfMonth": 25,
+      "hourOfDay": 0,
+      "minute": 0,
+      "second": 0
+    },
+    "fechaUltimoCargueFormateada": "25 de noviembre de 2025",
+    "idCategoria": 54,
+    "tiposCalculos": [
+      {
+        "idTipoDato": 14,
+        "descripcion": "Variación porcentual  trimestral",
+        "descripcionIngles": "Quarterly percentage change"
+      },
+      {
+        "idTipoDato": 21,
+        "descripcion": "Variación porcentual  año corrido",
+        "descripcionIngles": "Current year percentage change"
+      }
+    ],
+    "tiposPeriodicidades": [
+      {
+        "idTipoDato": 12,
+        "descripcion": "Dato fin de trimestre",
+        "descripcionIngles": "End of quarter data"
+      },
+      {
+        "idTipoDato": 14,
+        "descripcion": "Variación porcentual  trimestral",
+        "descripcionIngles": "Quarterly percentage change"
+      },
+      {
+        "idTipoDato": 21,
+        "descripcion": "Variación porcentual  año corrido",
+        "descripcionIngles": "Current year percentage change"
+      },
+      {
+        "idTipoDato": 14,
+        "descripcion": "Variación porcentual  trimestral",
+        "descripcionIngles": "Quarterly percentage change"
+      },
+      {
+        "idTipoDato": 21,
+        "descripcion": "Variación porcentual  año corrido",
+        "descripcionIngles": "Current year percentage change"
+      }
+    ],
+    "rank": 0,
+    "fuente": "Fuente: Departamento Administrativo Nacional de Estadística (DANE)",
+    "palabrasClavesEspanol": "produccion, produccion, trimestral, producto, interno, bruto, pib, crecimiento, constantes, precios constantes, precios,  desestacionalizada, actividad, actividad economica, actividad economica, pib real, real, , crecimiento, economico, crecimiento economico, crecimiento economico, economico, produccion interna bruta,  base 2015, 2015, ajuste estacional, ajuste, estacional, desestacionalizada, trimestral, miles de millones cop, ajuste estacional, precios constantes, base: 2015",
+    "idCargue": "PIB_BASE2015",
+    "numeroConsultas": 0,
+    "seriesRelacionadas": "15270|15131|15132|15133|15134|135|136|1|3",
+    "categoriasRelacionadas": "21|22|23|24|25|26",
+    "notas": "-",
+    "codigoSubCategoria": 827,
+    "descripcionSubCategoria": "Producto Interno Bruto - PIB",
+    "ordenBusqueda": 7300.0,
+    "fichaTecnica": "https://www.dane.gov.co/index.php/estadisticas-por-tema/cuentas-nacionales/cuentas-nacionales-trimestrales",
+    "baseSerie": "2015",
+    "categoriaNivel1": "Actividad económica, mercado laboral y cuentas financieras",
+    "categoriaNivel2": "Producto Interno Bruto",
+    "categoriaNivel3": "Producto Interno Bruto",
+    "descripcionCorta": "Trimestral, miles de millones COP, ajuste estacional, precios constantes, base: 2015",
+    "desestacionalizacion": "Ajuste estacional",
+    "etiquetaAtributo": "Categoría|Categoria2|Categoria3|Periodicidad|Periodo base|Ajuste estacional|Geografia|Precios|Periodo de referencia",
+    "fuenteCorta": "Departamento Administrativo Nacional de Estadística (DANE)",
+    "geografiaSerie": "Nacional",
+    "padreSerie": "253,1",
+    "periodoReferencia": "",
+    "precioSerie": "Precios constantes",
+    "valorAtributo": "Actividad económica y mercado laboral|Producto interno bruto|Producto interno bruto|Trimestral|2015|Ajuste estacional|Nacional|Precios constantes|",
+    "padreSerieDescripcion": "Producto Interno Bruto (PIB) real, ajuste estacional",
+    "ordenado": false,
+    "seleccionaHijo": false,
+    "unidadCorta": "Miles de millones COP",
+    "datoProducidoBanrep": "NO",
+    "numeroDecimales": 2,
+    "feErratas": "-",
+    "definicion": "El producto interno bruto (PIB) es el indicador más utilizado para caracterizar el estado de la economía en su conjunto y representa el resultado final de la actividad productiva dentro de un país. Esta medición es importante porque ofrece información sobre el tamaño de la economía y su desempeño, y sirve para hacer comparaciones frente a otros países. <br><br> El PIB mide el valor de mercado de todos los bienes y servicios finales, es decir, los que adquiere el consumidor final, que son producidos dentro de las fronteras de un país en un período determinado (generalmente un trimestre o un año).",
+    "data": [
+      [
+        1120107600000,
+        1.42
+      ],
+      [
+        1128056400000,
+        0.21
+      ],
+      [
+        1136005200000,
+        1.71
+      ],
+      [
+        1143781200000,
+        2.44
+      ],
+      [
+        1151643600000,
+        1.4
+      ],
+      [
+        1159592400000,
+        1.91
+      ],
+      [
+        1167541200000,
+        1.47
+      ],
+      [
+        1175317200000,
+        1.8
+      ],
+      [
+        1183179600000,
+        1.39
+      ],
+      [
+        1191128400000,
+        2.05
+      ],
+      [
+        1199077200000,
+        1.23
+      ],
+      [
+        1206939600000,
+        0.4
+      ],
+      [
+        1214802000000,
+        0.49
+      ],
+      [
+        1222750800000,
+        1.3
+      ],
+      [
+        1230699600000,
+        -1.77
+      ],
+      [
+        1238475600000,
+        0.25
+      ],
+      [
+        1246338000000,
+        1.11
+      ],
+      [
+        1254286800000,
+        0.86
+      ],
+      [
+        1262235600000,
+        0.77
+      ],
+      [
+        1270011600000,
+        1.03
+      ],
+      [
+        1277874000000,
+        1.69
+      ],
+      [
+        1285822800000,
+        0.62
+      ],
+      [
+        1293771600000,
+        2.1
+      ],
+      [
+        1301547600000,
+        2.12
+      ],
+      [
+        1309410000000,
+        1.59
+      ],
+      [
+        1317358800000,
+        1.96
+      ],
+      [
+        1325307600000,
+        0.72
+      ],
+      [
+        1333170000000,
+        1.08
+      ],
+      [
+        1341032400000,
+        1.14
+      ],
+      [
+        1348981200000,
+        -0.56
+      ],
+      [
+        1356930000000,
+        1.23
+      ],
+      [
+        1364706000000,
+        1.7
+      ],
+      [
+        1372568400000,
+        2.28
+      ],
+      [
+        1380517200000,
+        0.67
+      ],
+      [
+        1388466000000,
+        1.47
+      ],
+      [
+        1396242000000,
+        1.45
+      ],
+      [
+        1404104400000,
+        0.36
+      ],
+      [
+        1412053200000,
+        0.9
+      ],
+      [
+        1420002000000,
+        1.04
+      ],
+      [
+        1427778000000,
+        0.51
+      ],
+      [
+        1435640400000,
+        0.95
+      ],
+      [
+        1443589200000,
+        0.87
+      ],
+      [
+        1451538000000,
+        -0.21
+      ],
+      [
+        1459400400000,
+        0.87
+      ],
+      [
+        1467262800000,
+        0.31
+      ],
+      [
+        1475211600000,
+        0.61
+      ],
+      [
+        1483160400000,
+        0.62
+      ],
+      [
+        1490936400000,
+        -0.26
+      ],
+      [
+        1498798800000,
+        0.64
+      ],
+      [
+        1506747600000,
+        0.34
+      ],
+      [
+        1514696400000,
+        0.5
+      ],
+      [
+        1522472400000,
+        0.77
+      ],
+      [
+        1530334800000,
+        0.54
+      ],
+      [
+        1538283600000,
+        1.01
+      ],
+      [
+        1546232400000,
+        0.62
+      ],
+      [
+        1554008400000,
+        0.78
+      ],
+      [
+        1561870800000,
+        1.07
+      ],
+      [
+        1569819600000,
+        0.58
+      ],
+      [
+        1577768400000,
+        0.69
+      ],
+      [
+        1585630800000,
+        -2.43
+      ],
+      [
+        1593493200000,
+        -15.52
+      ],
+      [
+        1601442000000,
+        9.81
+      ],
+      [
+        1609390800000,
+        6.95
+      ],
+      [
+        1617166800000,
+        3.03
+      ],
+      [
+        1625029200000,
+        -2.29
+      ],
+      [
+        1632978000000,
+        5.16
+      ],
+      [
+        1640926800000,
+        4.72
+      ],
+      [
+        1648702800000,
+        0.43
+      ],
+      [
+        1656565200000,
+        1.41
+      ],
+      [
+        1664514000000,
+        0.78
+      ],
+      [
+        1672462800000,
+        -0.5
+      ],
+      [
+        1680238800000,
+        0.79
+      ],
+      [
+        1688101200000,
+        -0.65
+      ],
+      [
+        1696050000000,
+        -0.23
+      ],
+      [
+        1703998800000,
+        0.67
+      ],
+      [
+        1711861200000,
+        0.4
+      ],
+      [
+        1719723600000,
+        0.6
+      ],
+      [
+        1727672400000,
+        0.42
+      ],
+      [
+        1735621200000,
+        1.21
+      ],
+      [
+        1743397200000,
+        0.46
+      ],
+      [
+        1751259600000,
+        0.42
+      ],
+      [
+        1759208400000,
+        1.24
+      ]
+    ]
+  }
+]

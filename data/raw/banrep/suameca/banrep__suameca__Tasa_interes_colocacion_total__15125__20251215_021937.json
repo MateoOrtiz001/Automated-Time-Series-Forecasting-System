@@ -1,0 +1,1347 @@
+[
+  {
+    "id": 15125,
+    "nombre": "Tasa de interés de colocación Total, mensual",
+    "categoria": "Tasas de interés",
+    "valor": 0.0,
+    "unidad": "Tasa efectiva anual (porcentaje)",
+    "idTipoDato": 0,
+    "descripcionTipoDato": "Promedio mensual",
+    "idPeriodicidad": 22,
+    "descripcionPeriodicidad": "Promedio mensual",
+    "serieTipoDatos": "22",
+    "serieTipoCalculos": "",
+    "fechaInicial": {
+      "year": 2002,
+      "month": 4,
+      "dayOfMonth": 31,
+      "hourOfDay": 0,
+      "minute": 0,
+      "second": 0
+    },
+    "fechaFinal": {
+      "year": 2025,
+      "month": 10,
+      "dayOfMonth": 30,
+      "hourOfDay": 0,
+      "minute": 0,
+      "second": 0
+    },
+    "fechaInicialFormateada": "31 de mayo  de  2002",
+    "fechaFinalFormateada": "30 de noviembre  de  2025",
+    "fechaProximoCargue": {
+      "year": 2026,
+      "month": 0,
+      "dayOfMonth": 16,
+      "hourOfDay": 0,
+      "minute": 0,
+      "second": 0
+    },
+    "fechaProximoCargueFormateada": "16 de enero de 2026",
+    "fechaUltimoCargue": {
+      "year": 2025,
+      "month": 11,
+      "dayOfMonth": 12,
+      "hourOfDay": 0,
+      "minute": 0,
+      "second": 0
+    },
+    "fechaUltimoCargueFormateada": "12 de diciembre de 2025",
+    "idCategoria": 53,
+    "tiposCalculos": [],
+    "tiposPeriodicidades": [
+      {
+        "idTipoDato": 22,
+        "descripcion": "Promedio mensual",
+        "descripcionIngles": "Monthly average"
+      }
+    ],
+    "rank": 0,
+    "fuente": "Fuente: Banco de la República con información de la Superintendencia Financiera de Colombia",
+    "palabrasClavesEspanol": "tasa, interes, mensual, tasa de interes, tasa de interes, tasa, interes, monto, colocacion, colocacion, credito, credito, financiero, entidad, financiera, modalidad, establecimiento, vigilado, superintendencia financiera de colombia, operaciones, operacion, operacion, moneda, legal, entidad, sfc, superintendencia, superintendencia financiera, mensual, total, tasas activa,tasa activa, activas, prestamo, prestamos , sistema financiero, formato 088, tasas promedio ponderado, tasa de interes de colocacion total",
+    "idCargue": "TASAS_COLOCACION_MENSUAL",
+    "numeroConsultas": 0,
+    "seriesRelacionadas": "0",
+    "categoriasRelacionadas": "16|17|18|29|30|31|6|54",
+    "notas": "Las tasas de interés de colocación son aquellas que aplican para los diferentes tipos de créditos y productos que otorgan las diferentes entidades financieras a sus clientes. Dentro de los diferentes tipos de crédito se tienen: créditos de vivienda, créditos de consumo, créditos comerciales (ordinario, preferencial y tesorería), microcrédito, tarjetas de crédito, sobregiros, créditos especiales.\nEl Banco de la República calcula y publica los datos semanales y mensuales de tasas y montos de las diferentes modalidades de crédito de los establecimientos de crédito vigilados por la Superintendencia Financiera de Colombia, para esto utiliza el Formato 088 dentro del cual las entidades registran las nuevas operaciones denominadas en moneda legal y realizadas durante la semana.  La información se publica con periodicidad semanal y mensual desde 3 de mayo de 2002, y se presentan por modalidad de crédito, subcuentas y subcuentas criterio Banco de la República por tipo de entidad y para el total de entidades. Adicionalmente,  las tasas de colocación consolidadas con periodicidad mensual presentan información desde marzo de 1998, y de la tasa de interés activa total, la cual dejó de calcularse en el mes de abril de 2001.",
+    "codigoSubCategoria": 825,
+    "descripcionSubCategoria": "Tasas de interés de colocación mensuales",
+    "ordenBusqueda": 23000.0,
+    "fichaTecnica": "http://www.banrep.gov.co/sites/default/files/ficha-metodologica-tasas-de-colocacion.pdf|http://www.banrep.gov.co/sites/default/files/guia-metodologica-tasas-de-colocacion.pdf",
+    "baseSerie": "",
+    "categoriaNivel1": "Tasas de interés y sector financiero",
+    "categoriaNivel2": "Tasas de interés",
+    "categoriaNivel3": "Tasas de interés de colocación",
+    "descripcionCorta": "Tasa de interés de colocación Total",
+    "desestacionalizacion": "",
+    "etiquetaAtributo": "",
+    "fuenteCorta": "Banco de la República",
+    "geografiaSerie": "Nacional",
+    "padreSerie": "9000",
+    "periodoReferencia": "",
+    "precioSerie": "*",
+    "valorAtributo": "",
+    "padreSerieDescripcion": "Tasa de interés de colocación Total",
+    "ordenado": false,
+    "seleccionaHijo": false,
+    "unidadCorta": "%",
+    "datoProducidoBanrep": "SI",
+    "numeroDecimales": 2,
+    "feErratas": "-",
+    "definicion": "Las tasas de interés de colocación son aquellas que aplican para los diferentes tipos de créditos y productos que otorgan las diferentes entidades financieras a sus clientes. Dentro de los diferentes tipos de crédito se tienen: créditos de vivienda, créditos de consumo, créditos comerciales (ordinario, preferencial y tesorería), microcrédito, tarjetas de crédito, sobregiros, créditos especiales.\nEl Banco de la República calcula y publica los datos semanales y mensuales de tasas y montos de las diferentes modalidades de crédito de los establecimientos de crédito vigilados por la Superintendencia Financiera de Colombia, para esto utiliza el Formato 088 dentro del cual las entidades registran las nuevas operaciones denominadas en moneda legal y realizadas durante la semana.  La información se publica con periodicidad semanal y mensual desde 3 de mayo de 2002, y se presentan por modalidad de crédito, subcuentas y subcuentas criterio Banco de la República por tipo de entidad y para el total",
+    "data": [
+      [
+        1022821200000,
+        13.88
+      ],
+      [
+        1025413200000,
+        13.46
+      ],
+      [
+        1028091600000,
+        13.08
+      ],
+      [
+        1030770000000,
+        12.88
+      ],
+      [
+        1033362000000,
+        12.99
+      ],
+      [
+        1036040400000,
+        12.98
+      ],
+      [
+        1038632400000,
+        12.77
+      ],
+      [
+        1041310800000,
+        12.74
+      ],
+      [
+        1043989200000,
+        12.41
+      ],
+      [
+        1046408400000,
+        12.69
+      ],
+      [
+        1049086800000,
+        12.85
+      ],
+      [
+        1051678800000,
+        12.1
+      ],
+      [
+        1054357200000,
+        13.03
+      ],
+      [
+        1056949200000,
+        12.46
+      ],
+      [
+        1059627600000,
+        12.61
+      ],
+      [
+        1062306000000,
+        12.84
+      ],
+      [
+        1064898000000,
+        12.71
+      ],
+      [
+        1067576400000,
+        13.21
+      ],
+      [
+        1070168400000,
+        13.48
+      ],
+      [
+        1072846800000,
+        13.34
+      ],
+      [
+        1075525200000,
+        12.81
+      ],
+      [
+        1078030800000,
+        13.52
+      ],
+      [
+        1080709200000,
+        13.32
+      ],
+      [
+        1083301200000,
+        13.46
+      ],
+      [
+        1085979600000,
+        13.01
+      ],
+      [
+        1088571600000,
+        12.88
+      ],
+      [
+        1091250000000,
+        12.78
+      ],
+      [
+        1093928400000,
+        12.77
+      ],
+      [
+        1096520400000,
+        13.09
+      ],
+      [
+        1099198800000,
+        13.07
+      ],
+      [
+        1101790800000,
+        12.78
+      ],
+      [
+        1104469200000,
+        13.3
+      ],
+      [
+        1107147600000,
+        12.87
+      ],
+      [
+        1109566800000,
+        13.16
+      ],
+      [
+        1112245200000,
+        13.0
+      ],
+      [
+        1114837200000,
+        12.74
+      ],
+      [
+        1117515600000,
+        12.46
+      ],
+      [
+        1120107600000,
+        12.39
+      ],
+      [
+        1122786000000,
+        12.86
+      ],
+      [
+        1125464400000,
+        12.8
+      ],
+      [
+        1128056400000,
+        12.87
+      ],
+      [
+        1130734800000,
+        11.81
+      ],
+      [
+        1133326800000,
+        12.04
+      ],
+      [
+        1136005200000,
+        11.92
+      ],
+      [
+        1138683600000,
+        11.51
+      ],
+      [
+        1141102800000,
+        11.85
+      ],
+      [
+        1143781200000,
+        11.96
+      ],
+      [
+        1146373200000,
+        11.03
+      ],
+      [
+        1149051600000,
+        11.02
+      ],
+      [
+        1151643600000,
+        10.95
+      ],
+      [
+        1154322000000,
+        10.96
+      ],
+      [
+        1157000400000,
+        11.6
+      ],
+      [
+        1159592400000,
+        11.79
+      ],
+      [
+        1162270800000,
+        11.45
+      ],
+      [
+        1164862800000,
+        11.93
+      ],
+      [
+        1167541200000,
+        12.1
+      ],
+      [
+        1170219600000,
+        12.03
+      ],
+      [
+        1172638800000,
+        12.55
+      ],
+      [
+        1175317200000,
+        13.05
+      ],
+      [
+        1177909200000,
+        13.38
+      ],
+      [
+        1180587600000,
+        13.86
+      ],
+      [
+        1183179600000,
+        14.29
+      ],
+      [
+        1185858000000,
+        14.97
+      ],
+      [
+        1188536400000,
+        15.46
+      ],
+      [
+        1191128400000,
+        15.75
+      ],
+      [
+        1193806800000,
+        15.61
+      ],
+      [
+        1196398800000,
+        15.49
+      ],
+      [
+        1199077200000,
+        15.42
+      ],
+      [
+        1201755600000,
+        15.27
+      ],
+      [
+        1204261200000,
+        15.4
+      ],
+      [
+        1206939600000,
+        15.78
+      ],
+      [
+        1209531600000,
+        16.7
+      ],
+      [
+        1212210000000,
+        16.41
+      ],
+      [
+        1214802000000,
+        16.26
+      ],
+      [
+        1217480400000,
+        16.26
+      ],
+      [
+        1220158800000,
+        16.59
+      ],
+      [
+        1222750800000,
+        16.55
+      ],
+      [
+        1225429200000,
+        16.45
+      ],
+      [
+        1228021200000,
+        17.27
+      ],
+      [
+        1230699600000,
+        17.37
+      ],
+      [
+        1233378000000,
+        16.86
+      ],
+      [
+        1235797200000,
+        16.34
+      ],
+      [
+        1238475600000,
+        15.38
+      ],
+      [
+        1241067600000,
+        14.11
+      ],
+      [
+        1243746000000,
+        12.66
+      ],
+      [
+        1246338000000,
+        11.78
+      ],
+      [
+        1249016400000,
+        11.35
+      ],
+      [
+        1251694800000,
+        10.82
+      ],
+      [
+        1254286800000,
+        10.86
+      ],
+      [
+        1256965200000,
+        10.47
+      ],
+      [
+        1259557200000,
+        9.75
+      ],
+      [
+        1262235600000,
+        9.43
+      ],
+      [
+        1264914000000,
+        9.32
+      ],
+      [
+        1267333200000,
+        9.34
+      ],
+      [
+        1270011600000,
+        9.24
+      ],
+      [
+        1272603600000,
+        9.29
+      ],
+      [
+        1275282000000,
+        8.83
+      ],
+      [
+        1277874000000,
+        8.78
+      ],
+      [
+        1280552400000,
+        8.84
+      ],
+      [
+        1283230800000,
+        8.7
+      ],
+      [
+        1285822800000,
+        8.61
+      ],
+      [
+        1288501200000,
+        8.55
+      ],
+      [
+        1291093200000,
+        8.3
+      ],
+      [
+        1293771600000,
+        8.23
+      ],
+      [
+        1296450000000,
+        9.49
+      ],
+      [
+        1298869200000,
+        9.79
+      ],
+      [
+        1301547600000,
+        10.26
+      ],
+      [
+        1304139600000,
+        10.31
+      ],
+      [
+        1306818000000,
+        10.66
+      ],
+      [
+        1309410000000,
+        10.97
+      ],
+      [
+        1312088400000,
+        10.94
+      ],
+      [
+        1314766800000,
+        11.46
+      ],
+      [
+        1317358800000,
+        11.54
+      ],
+      [
+        1320037200000,
+        11.7
+      ],
+      [
+        1322629200000,
+        11.55
+      ],
+      [
+        1325307600000,
+        11.69
+      ],
+      [
+        1327986000000,
+        12.4
+      ],
+      [
+        1330491600000,
+        12.56
+      ],
+      [
+        1333170000000,
+        12.8
+      ],
+      [
+        1335762000000,
+        12.49
+      ],
+      [
+        1338440400000,
+        12.63
+      ],
+      [
+        1341032400000,
+        12.25
+      ],
+      [
+        1343710800000,
+        12.16
+      ],
+      [
+        1346389200000,
+        12.64
+      ],
+      [
+        1348981200000,
+        12.06
+      ],
+      [
+        1351659600000,
+        12.13
+      ],
+      [
+        1354251600000,
+        11.76
+      ],
+      [
+        1356930000000,
+        11.44
+      ],
+      [
+        1359608400000,
+        11.81
+      ],
+      [
+        1362027600000,
+        11.52
+      ],
+      [
+        1364706000000,
+        11.11
+      ],
+      [
+        1367298000000,
+        10.69
+      ],
+      [
+        1369976400000,
+        10.33
+      ],
+      [
+        1372568400000,
+        10.12
+      ],
+      [
+        1375246800000,
+        10.93
+      ],
+      [
+        1377925200000,
+        10.55
+      ],
+      [
+        1380517200000,
+        10.94
+      ],
+      [
+        1383195600000,
+        10.77
+      ],
+      [
+        1385787600000,
+        10.74
+      ],
+      [
+        1388466000000,
+        9.81
+      ],
+      [
+        1391144400000,
+        10.84
+      ],
+      [
+        1393563600000,
+        10.46
+      ],
+      [
+        1396242000000,
+        10.35
+      ],
+      [
+        1398834000000,
+        10.31
+      ],
+      [
+        1401512400000,
+        10.44
+      ],
+      [
+        1404104400000,
+        10.24
+      ],
+      [
+        1406782800000,
+        11.17
+      ],
+      [
+        1409461200000,
+        11.01
+      ],
+      [
+        1412053200000,
+        11.1
+      ],
+      [
+        1414731600000,
+        10.96
+      ],
+      [
+        1417323600000,
+        10.8
+      ],
+      [
+        1420002000000,
+        10.4
+      ],
+      [
+        1422680400000,
+        11.48
+      ],
+      [
+        1425099600000,
+        11.01
+      ],
+      [
+        1427778000000,
+        11.23
+      ],
+      [
+        1430370000000,
+        10.87
+      ],
+      [
+        1433048400000,
+        11.42
+      ],
+      [
+        1435640400000,
+        10.89
+      ],
+      [
+        1438318800000,
+        11.55
+      ],
+      [
+        1440997200000,
+        10.78
+      ],
+      [
+        1443589200000,
+        11.16
+      ],
+      [
+        1446267600000,
+        11.53
+      ],
+      [
+        1448859600000,
+        12.04
+      ],
+      [
+        1451538000000,
+        12.24
+      ],
+      [
+        1454216400000,
+        12.85
+      ],
+      [
+        1456722000000,
+        13.27
+      ],
+      [
+        1459400400000,
+        13.84
+      ],
+      [
+        1461992400000,
+        14.68
+      ],
+      [
+        1464670800000,
+        14.74
+      ],
+      [
+        1467262800000,
+        14.69
+      ],
+      [
+        1469941200000,
+        15.19
+      ],
+      [
+        1472619600000,
+        15.13
+      ],
+      [
+        1475211600000,
+        15.24
+      ],
+      [
+        1477890000000,
+        15.32
+      ],
+      [
+        1480482000000,
+        15.45
+      ],
+      [
+        1483160400000,
+        14.4
+      ],
+      [
+        1485838800000,
+        15.07
+      ],
+      [
+        1488258000000,
+        14.82
+      ],
+      [
+        1490936400000,
+        15.07
+      ],
+      [
+        1493528400000,
+        14.41
+      ],
+      [
+        1496206800000,
+        13.94
+      ],
+      [
+        1498798800000,
+        13.43
+      ],
+      [
+        1501477200000,
+        13.52
+      ],
+      [
+        1504155600000,
+        13.21
+      ],
+      [
+        1506747600000,
+        12.64
+      ],
+      [
+        1509426000000,
+        12.99
+      ],
+      [
+        1512018000000,
+        12.8
+      ],
+      [
+        1514696400000,
+        11.59
+      ],
+      [
+        1517374800000,
+        12.44
+      ],
+      [
+        1519794000000,
+        11.98
+      ],
+      [
+        1522472400000,
+        11.66
+      ],
+      [
+        1525064400000,
+        12.13
+      ],
+      [
+        1527742800000,
+        12.31
+      ],
+      [
+        1530334800000,
+        12.24
+      ],
+      [
+        1533013200000,
+        12.28
+      ],
+      [
+        1535691600000,
+        12.44
+      ],
+      [
+        1538283600000,
+        12.21
+      ],
+      [
+        1540962000000,
+        11.92
+      ],
+      [
+        1543554000000,
+        11.92
+      ],
+      [
+        1546232400000,
+        11.09
+      ],
+      [
+        1548910800000,
+        12.65
+      ],
+      [
+        1551330000000,
+        11.89
+      ],
+      [
+        1554008400000,
+        12.01
+      ],
+      [
+        1556600400000,
+        11.86
+      ],
+      [
+        1559278800000,
+        12.19
+      ],
+      [
+        1561870800000,
+        11.44
+      ],
+      [
+        1564549200000,
+        12.23
+      ],
+      [
+        1567227600000,
+        11.6
+      ],
+      [
+        1569819600000,
+        11.48
+      ],
+      [
+        1572498000000,
+        11.49
+      ],
+      [
+        1575090000000,
+        11.21
+      ],
+      [
+        1577768400000,
+        10.67
+      ],
+      [
+        1580446800000,
+        11.68
+      ],
+      [
+        1582952400000,
+        11.15
+      ],
+      [
+        1585630800000,
+        10.24
+      ],
+      [
+        1588222800000,
+        9.3
+      ],
+      [
+        1590901200000,
+        10.01
+      ],
+      [
+        1593493200000,
+        10.01
+      ],
+      [
+        1596171600000,
+        9.93
+      ],
+      [
+        1598850000000,
+        9.5
+      ],
+      [
+        1601442000000,
+        9.18
+      ],
+      [
+        1604120400000,
+        9.44
+      ],
+      [
+        1606712400000,
+        9.14
+      ],
+      [
+        1609390800000,
+        8.39
+      ],
+      [
+        1612069200000,
+        9.33
+      ],
+      [
+        1614488400000,
+        9.0
+      ],
+      [
+        1617166800000,
+        8.92
+      ],
+      [
+        1619758800000,
+        8.66
+      ],
+      [
+        1622437200000,
+        8.16
+      ],
+      [
+        1625029200000,
+        8.82
+      ],
+      [
+        1627707600000,
+        9.4
+      ],
+      [
+        1630386000000,
+        9.41
+      ],
+      [
+        1632978000000,
+        9.46
+      ],
+      [
+        1635656400000,
+        9.81
+      ],
+      [
+        1638248400000,
+        10.56
+      ],
+      [
+        1640926800000,
+        9.87
+      ],
+      [
+        1643605200000,
+        11.61
+      ],
+      [
+        1646024400000,
+        11.48
+      ],
+      [
+        1648702800000,
+        12.19
+      ],
+      [
+        1651294800000,
+        12.9
+      ],
+      [
+        1653973200000,
+        13.94
+      ],
+      [
+        1656565200000,
+        14.34
+      ],
+      [
+        1659243600000,
+        15.65
+      ],
+      [
+        1661922000000,
+        17.77
+      ],
+      [
+        1664514000000,
+        17.75
+      ],
+      [
+        1667192400000,
+        19.59
+      ],
+      [
+        1669784400000,
+        20.06
+      ],
+      [
+        1672462800000,
+        20.69
+      ],
+      [
+        1675141200000,
+        22.72
+      ],
+      [
+        1677560400000,
+        22.71
+      ],
+      [
+        1680238800000,
+        22.05
+      ],
+      [
+        1682830800000,
+        21.04
+      ],
+      [
+        1685509200000,
+        20.81
+      ],
+      [
+        1688101200000,
+        20.22
+      ],
+      [
+        1690779600000,
+        20.82
+      ],
+      [
+        1693458000000,
+        20.84
+      ],
+      [
+        1696050000000,
+        20.0
+      ],
+      [
+        1698728400000,
+        20.23
+      ],
+      [
+        1701320400000,
+        20.31
+      ],
+      [
+        1703998800000,
+        18.85
+      ],
+      [
+        1706677200000,
+        18.45
+      ],
+      [
+        1709182800000,
+        17.78
+      ],
+      [
+        1711861200000,
+        17.23
+      ],
+      [
+        1714453200000,
+        17.18
+      ],
+      [
+        1717131600000,
+        17.0
+      ],
+      [
+        1719723600000,
+        16.28
+      ],
+      [
+        1722402000000,
+        16.25
+      ],
+      [
+        1725080400000,
+        15.77
+      ],
+      [
+        1727672400000,
+        15.65
+      ],
+      [
+        1730350800000,
+        15.26
+      ],
+      [
+        1732942800000,
+        14.68
+      ],
+      [
+        1735621200000,
+        14.03
+      ],
+      [
+        1738299600000,
+        14.74
+      ],
+      [
+        1740718800000,
+        14.31
+      ],
+      [
+        1743397200000,
+        14.36
+      ],
+      [
+        1745989200000,
+        14.78
+      ],
+      [
+        1748667600000,
+        14.25
+      ],
+      [
+        1751259600000,
+        13.95
+      ],
+      [
+        1753938000000,
+        14.3
+      ],
+      [
+        1756616400000,
+        14.17
+      ],
+      [
+        1759208400000,
+        13.74
+      ],
+      [
+        1761886800000,
+        14.24
+      ],
+      [
+        1764478800000,
+        14.11
+      ]
+    ],
+    "metadataNotas": {
+      "idSerie": 920021,
+      "nivel": "1",
+      "idNivel": "2.11",
+      "nombre": "Tasas de colocación",
+      "notas": [
+        {
+          "descripcion": "Los datos de tasas de interés semanales de colocación con fecha de corte al 26 de mayo de 2023 fueron modificados el 16 de junio de 2023 debido a una corrección en el cálculo de las tasas.",
+          "fechaNotaDesde": "2024-09-11",
+          "fechaNotaHasta": "",
+          "tipo": "FE_ERRATA",
+          "estado": "ACTIVO"
+        },
+        {
+          "descripcion": "Los datos de tasas de interés semanales de colocación con fecha de corte al 03 de marzo de 2023 fueron modificados el 22 de marzo de 2023 debido a una corrección en el cálculo de los créditos ordinarios mayores a cinco años.",
+          "fechaNotaDesde": "2024-09-11",
+          "fechaNotaHasta": "",
+          "tipo": "FE_ERRATA",
+          "estado": "ACTIVO"
+        },
+        {
+          "descripcion": "Los datos de tasas de interés semanales de colocación del 15 de julio de 2022 y 29 de julio de 2022 fueron modificados en agosto de 2022 debido a retransmisión de datos (del formato 414 de la Superintendencia Financiera de Colombia) por parte de un establecimiento de crédito.",
+          "fechaNotaDesde": "2024-09-11",
+          "fechaNotaHasta": "",
+          "tipo": "FE_ERRATA",
+          "estado": "ACTIVO"
+        },
+        {
+          "descripcion": "El 13 de octubre de 2023 se informa que los datos de tasas y desembolsos de tasas de colocación publicados por el Banco de la República para los agregados semanales con corte al 29 de septiembre  de 2023 y para los datos mensuales de septiembre 2023 no se encuentran disponibles debido a cambios en el formato 414 (i.e. “Tasas de colocación semanal”) proveniente de la Superintendencia Financiera de Colombia ; cambios referenciados en circular externa 010, de 18 mayo de 2023 de dicha entidad.",
+          "fechaNotaDesde": "2024-09-11",
+          "fechaNotaHasta": "",
+          "tipo": "NOTA_ACLARATORIA",
+          "estado": "ACTIVO"
+        },
+        {
+          "descripcion": "El 4 de mayo de 2023 se informa que a partir del 1 de julio  de 2022 los datos de los créditos para adquisición y construcción de vivienda otorgados en UVR de las tasas de colocación reportadas fueron modificados. En particular, se crearon las cuentas: Adquisición de vivienda (margen adicional a la variación de la UVR) antes llamada (colocación en UVR), la cual su tasa corresponde al margen adicional a la variación de la UVR cobrada por las entidades. Adquisición de vivienda (colocación UVR, incluye variación anual de la UVR), esta cuenta contiene información desde el 01 de julio de 2022, fecha a partir de la cual las entidades empezaron a reportar esta información en el formato 414 de la Superintendencia Financiera de Colombia. Esta tasa se refiere a la tasa completa, incluyendo la variación anual de la UVR para los créditos de vivienda otorgados en UVR. Construcción de vivienda (margen adicional a la variación de la UVR) antes llamada (colocación en UVR), la cual su tasa corresponde al margen adicional a la variación de la UVR cobrada por las entidades. Construcción de vivienda (colocación UVR, incluye variación anual de la UVR), esta cuenta contiene información desde el 01 de julio de 2022, fecha a partir de la cual las entidades empezaron a reportar esta información en el formato 414 de la Superfinanciera de Colombia. Esta tasa se refiere a la tasa completa, incluyendo la variación anual de la UVR para los créditos otorgados en UVR.",
+          "fechaNotaDesde": "2024-09-11",
+          "fechaNotaHasta": "",
+          "tipo": "NOTA_ACLARATORIA",
+          "estado": "ACTIVO"
+        },
+        {
+          "descripcion": "Se informa que a partir de la semana 26, con fecha de corte 01 de julio de 2022, entró en vigencia el formato “tasas de interés activas por tipo de crédito” o formato 414, a través del cual las entidades del sector financiero reportan a la Superintendencia Financiera de Colombia la información de tasas activas (o tasas de interés de colocación); el formato 414 reemplaza el formato 088 (“informe semanal tasas de interés activas y pasivas”). Por tanto, la fuente de información para el cálculo de las tasas de colocación producidas por el Banco de la República será, en adelante, el formato 414 proveniente de la Superintendencia Financiera de Colombia.",
+          "fechaNotaDesde": "2024-09-11",
+          "fechaNotaHasta": "",
+          "tipo": "NOTA_ACLARATORIA",
+          "estado": "ACTIVO"
+        },
+        {
+          "descripcion": "Debido al cambio de formato en la fuente de información que sirve de insumo para producir los datos de las tasas de interés de colocación divulgados por el Banco de la República, los datos para algunos agregados, a partir de 01 de julio de 2022, no son estrictamente comparables con los recolectados hasta la semana con corte al 24 de junio de 2022 (cuya fuente era el formato 088 de la Superintendencia Financiera de Colombia). Por lo anterior, se pueden observar cambios importantes en los niveles de tasas o montos transados.",
+          "fechaNotaDesde": "2024-09-11",
+          "fechaNotaHasta": "",
+          "tipo": "NOTA_ACLARATORIA",
+          "estado": "ACTIVO"
+        },
+        {
+          "descripcion": "Las tasas de interés de colocación mensuales para junio de 2022 se calcularon con información hasta la semana con corte al 24 de junio de 2022.",
+          "fechaNotaDesde": "2024-09-11",
+          "fechaNotaHasta": "",
+          "tipo": "NOTA_ACLARATORIA",
+          "estado": "ACTIVO"
+        },
+        {
+          "descripcion": "Las tasas de interés de colocación para el total establecimientos no incluyen las tasas de las entidades financieras especiales excepto la del Fondo Nacional de Ahorro.",
+          "fechaNotaDesde": "2024-09-11",
+          "fechaNotaHasta": "",
+          "tipo": "NOTA_ACLARATORIA",
+          "estado": "ACTIVO"
+        },
+        {
+          "descripcion": "El valor de las tasas de colocación mensuales corresponden solamente a los puntos adicionales a la variación de la UVR.",
+          "fechaNotaDesde": "2024-09-11",
+          "fechaNotaHasta": "",
+          "tipo": "NOTA_ACLARATORIA",
+          "estado": "ACTIVO"
+        }
+      ],
+      "seriesHijas": [
+        {
+          "idSerie": 920023,
+          "nivel": "2",
+          "idNivel": "2.11.2.",
+          "nombre": "Tasas de colocación consolidadas promedio mensual",
+          "notas": [
+            {
+              "descripcion": "Las tasas de interés de colocación promedio mensual para junio de 2022 se calcularon con información hasta la semana con corte al 24 de junio de 2022 con datos del formato 088 de la Superintendencia Financiera de Colombia. Esto debido a que a partir del 1 julio de 2022 la información de tasas de interés comenzó a reportarse en el formato 414 de la Superintendencia Financiera de Colombia, modificando el formato 88, con lo cual la información de la semana del 27 de junio al 1 de julio de 2022 y la posterior a esta fecha no es estrictamente comparable con la información histórica previa (la cual reportaban las entidades a la Superintendencia Financiera de Colombia mediante el formato 088).",
+              "fechaNotaDesde": "2024-09-11",
+              "fechaNotaHasta": "",
+              "tipo": "NOTA_ACLARATORIA",
+              "estado": "ACTIVO"
+            },
+            {
+              "descripcion": "En las tasas de interés de colocación consolidadas promedio mensual, la tasa es efectiva anual.",
+              "fechaNotaDesde": "2024-09-11",
+              "fechaNotaHasta": "",
+              "tipo": "NOTA_ACLARATORIA",
+              "estado": "ACTIVO"
+            }
+          ],
+          "seriesHijas": [
+            {
+              "idSerie": 15125,
+              "nivel": "3",
+              "idNivel": "2.11.2.3",
+              "nombre": "Tasa de colocación Total",
+              "notas": [
+                {
+                  "descripcion": "La tasa de interés de colocación total del promedio ponderado por monto en las tasas de colocación consolidadas promedio mensual incluyen créditos de consumo, ordinario, preferencial y tesorería.",
+                  "fechaNotaDesde": "2024-09-11",
+                  "fechaNotaHasta": "",
+                  "tipo": "NOTA_ACLARATORIA",
+                  "estado": "ACTIVO"
+                }
+              ],
+              "seriesHijas": []
+            }
+          ]
+        }
+      ]
+    }
+  }
+]

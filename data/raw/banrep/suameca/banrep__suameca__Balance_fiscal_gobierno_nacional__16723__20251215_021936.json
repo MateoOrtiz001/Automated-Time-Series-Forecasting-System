@@ -1,0 +1,1451 @@
+[
+  {
+    "id": 16723,
+    "nombre": "Balance fiscal gobierno nacional central - Gastos - Metodología caja",
+    "categoria": "Gobierno nacional central",
+    "valor": 0.0,
+    "unidad": "Miles de millones de pesos colombianos",
+    "idTipoDato": 0,
+    "descripcionTipoDato": "Dato fin de mes",
+    "idPeriodicidad": 9,
+    "descripcionPeriodicidad": "Dato fin de mes",
+    "serieTipoDatos": "9|12|18",
+    "serieTipoCalculos": "",
+    "fechaInicial": {
+      "year": 2004,
+      "month": 0,
+      "dayOfMonth": 31,
+      "hourOfDay": 0,
+      "minute": 0,
+      "second": 0
+    },
+    "fechaFinal": {
+      "year": 2025,
+      "month": 7,
+      "dayOfMonth": 31,
+      "hourOfDay": 0,
+      "minute": 0,
+      "second": 0
+    },
+    "fechaInicialFormateada": "enero de 2004",
+    "fechaFinalFormateada": "agosto de 2025",
+    "fechaProximoCargue": {
+      "year": 2025,
+      "month": 11,
+      "dayOfMonth": 5,
+      "hourOfDay": 0,
+      "minute": 0,
+      "second": 0
+    },
+    "fechaProximoCargueFormateada": "05 de diciembre de 2025",
+    "fechaUltimoCargue": {
+      "year": 2025,
+      "month": 9,
+      "dayOfMonth": 31,
+      "hourOfDay": 0,
+      "minute": 0,
+      "second": 0
+    },
+    "fechaUltimoCargueFormateada": "31 de octubre de 2025",
+    "idCategoria": 916,
+    "tiposCalculos": [],
+    "tiposPeriodicidades": [
+      {
+        "idTipoDato": 9,
+        "descripcion": "Dato fin de mes",
+        "descripcionIngles": "End of month data"
+      },
+      {
+        "idTipoDato": 12,
+        "descripcion": "Dato fin de trimestre",
+        "descripcionIngles": "End of quarter data"
+      },
+      {
+        "idTipoDato": 18,
+        "descripcion": "Dato fin de año",
+        "descripcionIngles": "End of year data"
+      }
+    ],
+    "rank": 0,
+    "fuente": "Fuente: Ministerio de Hacienda y Crédito Público",
+    "palabrasClavesEspanol": "balance fiscal gobierno nacional central - gastos, balance fiscal, gobierno nacional central, sector publico y deuda publica, gobierno nacional central",
+    "idCargue": "BALANCE_GOBNALCTRAL",
+    "numeroConsultas": 0,
+    "seriesRelacionadas": "0",
+    "categoriasRelacionadas": "0",
+    "notas": "Las cifras oficiales del balance fiscal incluyen: ingresos, gastos, intereses, déficit o superávit, financiamiento interno y financiamiento externo. En tanto para el balance fiscal con la metodología de caja incluyen: ingresos, gastos, intereses, déficit o superávit, financiamiento interno y financiamiento externo. Esta serie corresponde a un empalme de las series históricas del Departamento Nacional de Planeación, con las series actuales del Ministerio de Hacienda y Crédito Público. Se eliminan los rubros correspondientes a causaciones, para obtener una serie bajo la metodología de caja.<br><br> Estos datos son informativos. Para más información sobre las estadísticas fiscales de Colombia, dirigirse al Ministerio de Hacienda y Crédito Público (https://www.minhacienda.gov.co).",
+    "codigoSubCategoria": 916,
+    "descripcionSubCategoria": "Gobierno nacional central",
+    "ordenBusqueda": 16723.0,
+    "fichaTecnica": "-",
+    "baseSerie": "",
+    "categoriaNivel1": "Sector público y deuda pública",
+    "categoriaNivel2": "Gobierno nacional central",
+    "categoriaNivel3": "Gobierno nacional central",
+    "descripcionCorta": "Balance fiscal gobierno nacional central - Gastos - Metodología caja",
+    "desestacionalizacion": "Sin ajuste estacional",
+    "etiquetaAtributo": "Categoría|Categoria2|Categoria3|Periodicidad|Periodo base|Ajuste estacional|Geografia|Precios|Periodo de referencia",
+    "fuenteCorta": "Ministerio de Hacienda y Crédito Público",
+    "geografiaSerie": "Nacional",
+    "padreSerie": "16723",
+    "periodoReferencia": "",
+    "precioSerie": "*",
+    "valorAtributo": "Sector público y deuda pública|Gobierno nacional central|Gobierno nacional central|Mensual|||||",
+    "padreSerieDescripcion": "Balance fiscal gobierno nacional central - Gastos - Metodología caja",
+    "ordenado": false,
+    "seleccionaHijo": false,
+    "unidadCorta": "Miles de millones de pesos colombianos",
+    "datoProducidoBanrep": "SI",
+    "numeroDecimales": 0,
+    "feErratas": "-",
+    "definicion": "Las cifras oficiales del balance fiscal incluyen: ingresos, gastos, intereses, déficit o superávit, financiamiento interno y financiamiento externo. En tanto para el balance fiscal con la metodología de caja incluyen: ingresos, gastos, intereses, déficit o superávit, financiamiento interno y financiamiento externo. Esta serie corresponde a un empalme de las series históricas del Departamento Nacional de Planeación, con las series actuales del Ministerio de Hacienda y Crédito Público. Se eliminan los rubros correspondientes a causaciones, para obtener una serie bajo la metodología de caja.<br><br> Estos datos son informativos. Para más información sobre las estadísticas fiscales de Colombia, dirigirse al Ministerio de Hacienda y Crédito Público (https://www.minhacienda.gov.co).",
+    "data": [
+      [
+        1075525200000,
+        3819
+      ],
+      [
+        1078030800000,
+        3947
+      ],
+      [
+        1080709200000,
+        3935
+      ],
+      [
+        1083301200000,
+        3484
+      ],
+      [
+        1085979600000,
+        3979
+      ],
+      [
+        1088571600000,
+        4269
+      ],
+      [
+        1091250000000,
+        4585
+      ],
+      [
+        1093928400000,
+        3806
+      ],
+      [
+        1096520400000,
+        3896
+      ],
+      [
+        1099198800000,
+        3355
+      ],
+      [
+        1101790800000,
+        4807
+      ],
+      [
+        1104469200000,
+        6942
+      ],
+      [
+        1107147600000,
+        4388
+      ],
+      [
+        1109566800000,
+        4496
+      ],
+      [
+        1112245200000,
+        4096
+      ],
+      [
+        1114837200000,
+        5194
+      ],
+      [
+        1117515600000,
+        3988
+      ],
+      [
+        1120107600000,
+        4844
+      ],
+      [
+        1122786000000,
+        5225
+      ],
+      [
+        1125464400000,
+        4401
+      ],
+      [
+        1128056400000,
+        5111
+      ],
+      [
+        1130734800000,
+        4642
+      ],
+      [
+        1133326800000,
+        5438
+      ],
+      [
+        1136005200000,
+        7357
+      ],
+      [
+        1138683600000,
+        4128
+      ],
+      [
+        1141102800000,
+        5407
+      ],
+      [
+        1143781200000,
+        5031
+      ],
+      [
+        1146373200000,
+        5153
+      ],
+      [
+        1149051600000,
+        4739
+      ],
+      [
+        1151643600000,
+        5937
+      ],
+      [
+        1154322000000,
+        6564
+      ],
+      [
+        1157000400000,
+        4958
+      ],
+      [
+        1159592400000,
+        5788
+      ],
+      [
+        1162270800000,
+        5417
+      ],
+      [
+        1164862800000,
+        6463
+      ],
+      [
+        1167541200000,
+        7996
+      ],
+      [
+        1170219600000,
+        4459
+      ],
+      [
+        1172638800000,
+        6497
+      ],
+      [
+        1175317200000,
+        5740
+      ],
+      [
+        1177909200000,
+        5460
+      ],
+      [
+        1180587600000,
+        5127
+      ],
+      [
+        1183179600000,
+        6633
+      ],
+      [
+        1185858000000,
+        7520
+      ],
+      [
+        1188536400000,
+        5712
+      ],
+      [
+        1191128400000,
+        6497
+      ],
+      [
+        1193806800000,
+        5711
+      ],
+      [
+        1196398800000,
+        8021
+      ],
+      [
+        1199077200000,
+        9367
+      ],
+      [
+        1201755600000,
+        4616
+      ],
+      [
+        1204261200000,
+        8913
+      ],
+      [
+        1206939600000,
+        6244
+      ],
+      [
+        1209531600000,
+        5602
+      ],
+      [
+        1212210000000,
+        6290
+      ],
+      [
+        1214802000000,
+        7335
+      ],
+      [
+        1217480400000,
+        7483
+      ],
+      [
+        1220158800000,
+        6115
+      ],
+      [
+        1222750800000,
+        6805
+      ],
+      [
+        1225429200000,
+        7024
+      ],
+      [
+        1228021200000,
+        7724
+      ],
+      [
+        1230699600000,
+        9553
+      ],
+      [
+        1233378000000,
+        5368
+      ],
+      [
+        1235797200000,
+        9665
+      ],
+      [
+        1238475600000,
+        6464
+      ],
+      [
+        1241067600000,
+        7236
+      ],
+      [
+        1243746000000,
+        7835
+      ],
+      [
+        1246338000000,
+        8690
+      ],
+      [
+        1249016400000,
+        8284
+      ],
+      [
+        1251694800000,
+        8452
+      ],
+      [
+        1254286800000,
+        7498
+      ],
+      [
+        1256965200000,
+        7668
+      ],
+      [
+        1259557200000,
+        9244
+      ],
+      [
+        1262235600000,
+        9436
+      ],
+      [
+        1264914000000,
+        6825
+      ],
+      [
+        1267333200000,
+        7818
+      ],
+      [
+        1270011600000,
+        6886
+      ],
+      [
+        1272603600000,
+        7068
+      ],
+      [
+        1275282000000,
+        8059
+      ],
+      [
+        1277874000000,
+        9035
+      ],
+      [
+        1280552400000,
+        7979
+      ],
+      [
+        1283230800000,
+        6767
+      ],
+      [
+        1285822800000,
+        6778
+      ],
+      [
+        1288501200000,
+        7425
+      ],
+      [
+        1291093200000,
+        8843
+      ],
+      [
+        1293771600000,
+        10226
+      ],
+      [
+        1296450000000,
+        5049
+      ],
+      [
+        1298869200000,
+        7342
+      ],
+      [
+        1301547600000,
+        7131
+      ],
+      [
+        1304139600000,
+        7048
+      ],
+      [
+        1306818000000,
+        9961
+      ],
+      [
+        1309410000000,
+        9818
+      ],
+      [
+        1312088400000,
+        9685
+      ],
+      [
+        1314766800000,
+        8010
+      ],
+      [
+        1317358800000,
+        8513
+      ],
+      [
+        1320037200000,
+        9374
+      ],
+      [
+        1322629200000,
+        10834
+      ],
+      [
+        1325307600000,
+        13785
+      ],
+      [
+        1327986000000,
+        7184
+      ],
+      [
+        1330491600000,
+        8668
+      ],
+      [
+        1333170000000,
+        8431
+      ],
+      [
+        1335762000000,
+        8465
+      ],
+      [
+        1338440400000,
+        8842
+      ],
+      [
+        1341032400000,
+        11115
+      ],
+      [
+        1343710800000,
+        11502
+      ],
+      [
+        1346389200000,
+        9023
+      ],
+      [
+        1348981200000,
+        8594
+      ],
+      [
+        1351659600000,
+        11063
+      ],
+      [
+        1354251600000,
+        10644
+      ],
+      [
+        1356930000000,
+        15829
+      ],
+      [
+        1359608400000,
+        7460
+      ],
+      [
+        1362027600000,
+        10802
+      ],
+      [
+        1364706000000,
+        9020
+      ],
+      [
+        1367298000000,
+        10743
+      ],
+      [
+        1369976400000,
+        10166
+      ],
+      [
+        1372568400000,
+        12078
+      ],
+      [
+        1375246800000,
+        11752
+      ],
+      [
+        1377925200000,
+        10086
+      ],
+      [
+        1380517200000,
+        10615
+      ],
+      [
+        1383195600000,
+        14201
+      ],
+      [
+        1385787600000,
+        11917
+      ],
+      [
+        1388466000000,
+        16126
+      ],
+      [
+        1391144400000,
+        9459
+      ],
+      [
+        1393563600000,
+        12536
+      ],
+      [
+        1396242000000,
+        10836
+      ],
+      [
+        1398834000000,
+        11150
+      ],
+      [
+        1401512400000,
+        11534
+      ],
+      [
+        1404104400000,
+        14637
+      ],
+      [
+        1406782800000,
+        12848
+      ],
+      [
+        1409461200000,
+        11188
+      ],
+      [
+        1412053200000,
+        11245
+      ],
+      [
+        1414731600000,
+        12047
+      ],
+      [
+        1417323600000,
+        12864
+      ],
+      [
+        1420002000000,
+        14789
+      ],
+      [
+        1422680400000,
+        9694
+      ],
+      [
+        1425099600000,
+        12163
+      ],
+      [
+        1427778000000,
+        12007
+      ],
+      [
+        1430370000000,
+        11322
+      ],
+      [
+        1433048400000,
+        10674
+      ],
+      [
+        1435640400000,
+        14696
+      ],
+      [
+        1438318800000,
+        15944
+      ],
+      [
+        1440997200000,
+        11490
+      ],
+      [
+        1443589200000,
+        12465
+      ],
+      [
+        1446267600000,
+        12124
+      ],
+      [
+        1448859600000,
+        13660
+      ],
+      [
+        1451538000000,
+        16545
+      ],
+      [
+        1454216400000,
+        10897
+      ],
+      [
+        1456722000000,
+        14455
+      ],
+      [
+        1459400400000,
+        11555
+      ],
+      [
+        1461992400000,
+        13718
+      ],
+      [
+        1464670800000,
+        12155
+      ],
+      [
+        1467262800000,
+        14761
+      ],
+      [
+        1469941200000,
+        16231
+      ],
+      [
+        1472619600000,
+        12397
+      ],
+      [
+        1475211600000,
+        12946
+      ],
+      [
+        1477890000000,
+        11668
+      ],
+      [
+        1480482000000,
+        14936
+      ],
+      [
+        1483160400000,
+        15681
+      ],
+      [
+        1485838800000,
+        15223
+      ],
+      [
+        1488258000000,
+        12906
+      ],
+      [
+        1490936400000,
+        12843
+      ],
+      [
+        1493528400000,
+        12929
+      ],
+      [
+        1496206800000,
+        13220
+      ],
+      [
+        1498798800000,
+        16557
+      ],
+      [
+        1501477200000,
+        17042
+      ],
+      [
+        1504155600000,
+        13267
+      ],
+      [
+        1506747600000,
+        15001
+      ],
+      [
+        1509426000000,
+        11413
+      ],
+      [
+        1512018000000,
+        16123
+      ],
+      [
+        1514696400000,
+        17617
+      ],
+      [
+        1517374800000,
+        13041
+      ],
+      [
+        1519794000000,
+        14052
+      ],
+      [
+        1522472400000,
+        14560
+      ],
+      [
+        1525064400000,
+        14354
+      ],
+      [
+        1527742800000,
+        15999
+      ],
+      [
+        1530334800000,
+        15783
+      ],
+      [
+        1533013200000,
+        20437
+      ],
+      [
+        1535691600000,
+        14147
+      ],
+      [
+        1538283600000,
+        14494
+      ],
+      [
+        1540962000000,
+        11701
+      ],
+      [
+        1543554000000,
+        15176
+      ],
+      [
+        1546232400000,
+        16371
+      ],
+      [
+        1548910800000,
+        11029
+      ],
+      [
+        1551330000000,
+        16278
+      ],
+      [
+        1554008400000,
+        16599
+      ],
+      [
+        1556600400000,
+        15009
+      ],
+      [
+        1559278800000,
+        15347
+      ],
+      [
+        1561870800000,
+        15820
+      ],
+      [
+        1564549200000,
+        19383
+      ],
+      [
+        1567227600000,
+        14617
+      ],
+      [
+        1569819600000,
+        15535
+      ],
+      [
+        1572498000000,
+        13795
+      ],
+      [
+        1575090000000,
+        18966
+      ],
+      [
+        1577768400000,
+        23020
+      ],
+      [
+        1580446800000,
+        12820
+      ],
+      [
+        1582952400000,
+        15594
+      ],
+      [
+        1585630800000,
+        18221
+      ],
+      [
+        1588222800000,
+        18502
+      ],
+      [
+        1590901200000,
+        18714
+      ],
+      [
+        1593493200000,
+        21690
+      ],
+      [
+        1596171600000,
+        20174
+      ],
+      [
+        1598850000000,
+        17562
+      ],
+      [
+        1601442000000,
+        17709
+      ],
+      [
+        1604120400000,
+        17304
+      ],
+      [
+        1606712400000,
+        24026
+      ],
+      [
+        1609390800000,
+        31167
+      ],
+      [
+        1612069200000,
+        14380
+      ],
+      [
+        1614488400000,
+        20764
+      ],
+      [
+        1617166800000,
+        19907
+      ],
+      [
+        1619758800000,
+        19294
+      ],
+      [
+        1622437200000,
+        19833
+      ],
+      [
+        1625029200000,
+        22871
+      ],
+      [
+        1627707600000,
+        22824
+      ],
+      [
+        1630386000000,
+        19944
+      ],
+      [
+        1632978000000,
+        18227
+      ],
+      [
+        1635656400000,
+        25260
+      ],
+      [
+        1638248400000,
+        32125
+      ],
+      [
+        1640926800000,
+        38677
+      ],
+      [
+        1643605200000,
+        13552
+      ],
+      [
+        1646024400000,
+        22423
+      ],
+      [
+        1648702800000,
+        24146
+      ],
+      [
+        1651294800000,
+        21130
+      ],
+      [
+        1653973200000,
+        22782
+      ],
+      [
+        1656565200000,
+        35149
+      ],
+      [
+        1659243600000,
+        31345
+      ],
+      [
+        1661922000000,
+        24680
+      ],
+      [
+        1664514000000,
+        22375
+      ],
+      [
+        1667192400000,
+        21469
+      ],
+      [
+        1669784400000,
+        25303
+      ],
+      [
+        1672462800000,
+        34869
+      ],
+      [
+        1675141200000,
+        18440
+      ],
+      [
+        1677560400000,
+        23591
+      ],
+      [
+        1680238800000,
+        25319
+      ],
+      [
+        1682830800000,
+        25327
+      ],
+      [
+        1685509200000,
+        22826
+      ],
+      [
+        1688101200000,
+        39301
+      ],
+      [
+        1690779600000,
+        26488
+      ],
+      [
+        1693458000000,
+        26296
+      ],
+      [
+        1696050000000,
+        38315
+      ],
+      [
+        1698728400000,
+        27988
+      ],
+      [
+        1701320400000,
+        31826
+      ],
+      [
+        1703998800000,
+        42044
+      ],
+      [
+        1706677200000,
+        25397
+      ],
+      [
+        1709182800000,
+        31801
+      ],
+      [
+        1711861200000,
+        29175
+      ],
+      [
+        1714453200000,
+        38849
+      ],
+      [
+        1717131600000,
+        32378
+      ],
+      [
+        1719723600000,
+        36739
+      ],
+      [
+        1722402000000,
+        30972
+      ],
+      [
+        1725080400000,
+        25741
+      ],
+      [
+        1727672400000,
+        30366
+      ],
+      [
+        1730350800000,
+        28375
+      ],
+      [
+        1732942800000,
+        39703
+      ],
+      [
+        1735621200000,
+        37148
+      ],
+      [
+        1738299600000,
+        27326
+      ],
+      [
+        1740718800000,
+        36755
+      ],
+      [
+        1743397200000,
+        41090
+      ],
+      [
+        1745989200000,
+        37596
+      ],
+      [
+        1748667600000,
+        38519
+      ],
+      [
+        1751259600000,
+        35201
+      ],
+      [
+        1753938000000,
+        39627
+      ],
+      [
+        1756616400000,
+        31825
+      ]
+    ],
+    "metadataNotas": {
+      "idSerie": 930014,
+      "nivel": "1",
+      "idNivel": "6.2",
+      "nombre": "Gobiernos nacional central",
+      "notas": [],
+      "seriesHijas": [
+        {
+          "idSerie": 17677,
+          "nivel": "2",
+          "idNivel": "6.2.1",
+          "nombre": "Serie histórica balance fiscal gobierno nacional central",
+          "notas": [],
+          "seriesHijas": [
+            {
+              "idSerie": 16723,
+              "nivel": "3",
+              "idNivel": "6.2.1.2",
+              "nombre": "Gastos",
+              "notas": [
+                {
+                  "descripcion": "Los gastos, en la serie histórica del balance fiscal del Gobierno Nacional Central, incluyen los intereses, la variación de las cuentas por pagar y otros rubros de causación.",
+                  "fechaNotaDesde": "2023-01-01",
+                  "fechaNotaHasta": "",
+                  "tipo": "NOTA_ACLARATORIA",
+                  "estado": "ACTIVO"
+                }
+              ],
+              "seriesHijas": []
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": 16723,
+    "nombre": "Balance fiscal gobierno nacional central - Gastos - Metodología caja",
+    "categoria": "Gobierno nacional central",
+    "valor": 0.0,
+    "unidad": "Miles de millones de pesos colombianos",
+    "idTipoDato": 0,
+    "descripcionTipoDato": "Dato fin de mes",
+    "idPeriodicidad": 12,
+    "descripcionPeriodicidad": "Dato fin de trimestre",
+    "serieTipoDatos": "9|12|18",
+    "serieTipoCalculos": "",
+    "fechaInicial": {
+      "year": 2004,
+      "month": 0,
+      "dayOfMonth": 31,
+      "hourOfDay": 0,
+      "minute": 0,
+      "second": 0
+    },
+    "fechaFinal": {
+      "year": 2025,
+      "month": 7,
+      "dayOfMonth": 31,
+      "hourOfDay": 0,
+      "minute": 0,
+      "second": 0
+    },
+    "fechaInicialFormateada": "enero de 2004",
+    "fechaFinalFormateada": "agosto de 2025",
+    "fechaProximoCargue": {
+      "year": 2025,
+      "month": 11,
+      "dayOfMonth": 5,
+      "hourOfDay": 0,
+      "minute": 0,
+      "second": 0
+    },
+    "fechaProximoCargueFormateada": "05 de diciembre de 2025",
+    "fechaUltimoCargue": {
+      "year": 2025,
+      "month": 9,
+      "dayOfMonth": 31,
+      "hourOfDay": 0,
+      "minute": 0,
+      "second": 0
+    },
+    "fechaUltimoCargueFormateada": "31 de octubre de 2025",
+    "idCategoria": 916,
+    "tiposCalculos": [],
+    "tiposPeriodicidades": [
+      {
+        "idTipoDato": 9,
+        "descripcion": "Dato fin de mes",
+        "descripcionIngles": "End of month data"
+      },
+      {
+        "idTipoDato": 12,
+        "descripcion": "Dato fin de trimestre",
+        "descripcionIngles": "End of quarter data"
+      },
+      {
+        "idTipoDato": 18,
+        "descripcion": "Dato fin de año",
+        "descripcionIngles": "End of year data"
+      }
+    ],
+    "rank": 0,
+    "fuente": "Fuente: Ministerio de Hacienda y Crédito Público",
+    "palabrasClavesEspanol": "balance fiscal gobierno nacional central - gastos, balance fiscal, gobierno nacional central, sector publico y deuda publica, gobierno nacional central",
+    "idCargue": "BALANCE_GOBNALCTRAL",
+    "numeroConsultas": 0,
+    "seriesRelacionadas": "0",
+    "categoriasRelacionadas": "0",
+    "notas": "Las cifras oficiales del balance fiscal incluyen: ingresos, gastos, intereses, déficit o superávit, financiamiento interno y financiamiento externo. En tanto para el balance fiscal con la metodología de caja incluyen: ingresos, gastos, intereses, déficit o superávit, financiamiento interno y financiamiento externo. Esta serie corresponde a un empalme de las series históricas del Departamento Nacional de Planeación, con las series actuales del Ministerio de Hacienda y Crédito Público. Se eliminan los rubros correspondientes a causaciones, para obtener una serie bajo la metodología de caja.<br><br> Estos datos son informativos. Para más información sobre las estadísticas fiscales de Colombia, dirigirse al Ministerio de Hacienda y Crédito Público (https://www.minhacienda.gov.co).",
+    "codigoSubCategoria": 916,
+    "descripcionSubCategoria": "Gobierno nacional central",
+    "ordenBusqueda": 16723.0,
+    "fichaTecnica": "-",
+    "baseSerie": "",
+    "categoriaNivel1": "Sector público y deuda pública",
+    "categoriaNivel2": "Gobierno nacional central",
+    "categoriaNivel3": "Gobierno nacional central",
+    "descripcionCorta": "Balance fiscal gobierno nacional central - Gastos - Metodología caja",
+    "desestacionalizacion": "Sin ajuste estacional",
+    "etiquetaAtributo": "Categoría|Categoria2|Categoria3|Periodicidad|Periodo base|Ajuste estacional|Geografia|Precios|Periodo de referencia",
+    "fuenteCorta": "Ministerio de Hacienda y Crédito Público",
+    "geografiaSerie": "Nacional",
+    "padreSerie": "16723",
+    "periodoReferencia": "",
+    "precioSerie": "*",
+    "valorAtributo": "Sector público y deuda pública|Gobierno nacional central|Gobierno nacional central|Mensual|||||",
+    "padreSerieDescripcion": "Balance fiscal gobierno nacional central - Gastos - Metodología caja",
+    "ordenado": false,
+    "seleccionaHijo": false,
+    "unidadCorta": "Miles de millones de pesos colombianos",
+    "datoProducidoBanrep": "SI",
+    "numeroDecimales": 0,
+    "feErratas": "-",
+    "definicion": "Las cifras oficiales del balance fiscal incluyen: ingresos, gastos, intereses, déficit o superávit, financiamiento interno y financiamiento externo. En tanto para el balance fiscal con la metodología de caja incluyen: ingresos, gastos, intereses, déficit o superávit, financiamiento interno y financiamiento externo. Esta serie corresponde a un empalme de las series históricas del Departamento Nacional de Planeación, con las series actuales del Ministerio de Hacienda y Crédito Público. Se eliminan los rubros correspondientes a causaciones, para obtener una serie bajo la metodología de caja.<br><br> Estos datos son informativos. Para más información sobre las estadísticas fiscales de Colombia, dirigirse al Ministerio de Hacienda y Crédito Público (https://www.minhacienda.gov.co).",
+    "data": [],
+    "metadataNotas": {
+      "idSerie": 930014,
+      "nivel": "1",
+      "idNivel": "6.2",
+      "nombre": "Gobiernos nacional central",
+      "notas": [],
+      "seriesHijas": [
+        {
+          "idSerie": 17677,
+          "nivel": "2",
+          "idNivel": "6.2.1",
+          "nombre": "Serie histórica balance fiscal gobierno nacional central",
+          "notas": [],
+          "seriesHijas": [
+            {
+              "idSerie": 16723,
+              "nivel": "3",
+              "idNivel": "6.2.1.2",
+              "nombre": "Gastos",
+              "notas": [
+                {
+                  "descripcion": "Los gastos, en la serie histórica del balance fiscal del Gobierno Nacional Central, incluyen los intereses, la variación de las cuentas por pagar y otros rubros de causación.",
+                  "fechaNotaDesde": "2023-01-01",
+                  "fechaNotaHasta": "",
+                  "tipo": "NOTA_ACLARATORIA",
+                  "estado": "ACTIVO"
+                }
+              ],
+              "seriesHijas": []
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": 16723,
+    "nombre": "Balance fiscal gobierno nacional central - Gastos - Metodología caja",
+    "categoria": "Gobierno nacional central",
+    "valor": 0.0,
+    "unidad": "Miles de millones de pesos colombianos",
+    "idTipoDato": 0,
+    "descripcionTipoDato": "Dato fin de mes",
+    "idPeriodicidad": 18,
+    "descripcionPeriodicidad": "Dato fin de año",
+    "serieTipoDatos": "9|12|18",
+    "serieTipoCalculos": "",
+    "fechaInicial": {
+      "year": 2004,
+      "month": 0,
+      "dayOfMonth": 31,
+      "hourOfDay": 0,
+      "minute": 0,
+      "second": 0
+    },
+    "fechaFinal": {
+      "year": 2025,
+      "month": 7,
+      "dayOfMonth": 31,
+      "hourOfDay": 0,
+      "minute": 0,
+      "second": 0
+    },
+    "fechaInicialFormateada": "enero de 2004",
+    "fechaFinalFormateada": "agosto de 2025",
+    "fechaProximoCargue": {
+      "year": 2025,
+      "month": 11,
+      "dayOfMonth": 5,
+      "hourOfDay": 0,
+      "minute": 0,
+      "second": 0
+    },
+    "fechaProximoCargueFormateada": "05 de diciembre de 2025",
+    "fechaUltimoCargue": {
+      "year": 2025,
+      "month": 9,
+      "dayOfMonth": 31,
+      "hourOfDay": 0,
+      "minute": 0,
+      "second": 0
+    },
+    "fechaUltimoCargueFormateada": "31 de octubre de 2025",
+    "idCategoria": 916,
+    "tiposCalculos": [],
+    "tiposPeriodicidades": [
+      {
+        "idTipoDato": 9,
+        "descripcion": "Dato fin de mes",
+        "descripcionIngles": "End of month data"
+      },
+      {
+        "idTipoDato": 12,
+        "descripcion": "Dato fin de trimestre",
+        "descripcionIngles": "End of quarter data"
+      },
+      {
+        "idTipoDato": 18,
+        "descripcion": "Dato fin de año",
+        "descripcionIngles": "End of year data"
+      }
+    ],
+    "rank": 0,
+    "fuente": "Fuente: Ministerio de Hacienda y Crédito Público",
+    "palabrasClavesEspanol": "balance fiscal gobierno nacional central - gastos, balance fiscal, gobierno nacional central, sector publico y deuda publica, gobierno nacional central",
+    "idCargue": "BALANCE_GOBNALCTRAL",
+    "numeroConsultas": 0,
+    "seriesRelacionadas": "0",
+    "categoriasRelacionadas": "0",
+    "notas": "Las cifras oficiales del balance fiscal incluyen: ingresos, gastos, intereses, déficit o superávit, financiamiento interno y financiamiento externo. En tanto para el balance fiscal con la metodología de caja incluyen: ingresos, gastos, intereses, déficit o superávit, financiamiento interno y financiamiento externo. Esta serie corresponde a un empalme de las series históricas del Departamento Nacional de Planeación, con las series actuales del Ministerio de Hacienda y Crédito Público. Se eliminan los rubros correspondientes a causaciones, para obtener una serie bajo la metodología de caja.<br><br> Estos datos son informativos. Para más información sobre las estadísticas fiscales de Colombia, dirigirse al Ministerio de Hacienda y Crédito Público (https://www.minhacienda.gov.co).",
+    "codigoSubCategoria": 916,
+    "descripcionSubCategoria": "Gobierno nacional central",
+    "ordenBusqueda": 16723.0,
+    "fichaTecnica": "-",
+    "baseSerie": "",
+    "categoriaNivel1": "Sector público y deuda pública",
+    "categoriaNivel2": "Gobierno nacional central",
+    "categoriaNivel3": "Gobierno nacional central",
+    "descripcionCorta": "Balance fiscal gobierno nacional central - Gastos - Metodología caja",
+    "desestacionalizacion": "Sin ajuste estacional",
+    "etiquetaAtributo": "Categoría|Categoria2|Categoria3|Periodicidad|Periodo base|Ajuste estacional|Geografia|Precios|Periodo de referencia",
+    "fuenteCorta": "Ministerio de Hacienda y Crédito Público",
+    "geografiaSerie": "Nacional",
+    "padreSerie": "16723",
+    "periodoReferencia": "",
+    "precioSerie": "*",
+    "valorAtributo": "Sector público y deuda pública|Gobierno nacional central|Gobierno nacional central|Mensual|||||",
+    "padreSerieDescripcion": "Balance fiscal gobierno nacional central - Gastos - Metodología caja",
+    "ordenado": false,
+    "seleccionaHijo": false,
+    "unidadCorta": "Miles de millones de pesos colombianos",
+    "datoProducidoBanrep": "SI",
+    "numeroDecimales": 0,
+    "feErratas": "-",
+    "definicion": "Las cifras oficiales del balance fiscal incluyen: ingresos, gastos, intereses, déficit o superávit, financiamiento interno y financiamiento externo. En tanto para el balance fiscal con la metodología de caja incluyen: ingresos, gastos, intereses, déficit o superávit, financiamiento interno y financiamiento externo. Esta serie corresponde a un empalme de las series históricas del Departamento Nacional de Planeación, con las series actuales del Ministerio de Hacienda y Crédito Público. Se eliminan los rubros correspondientes a causaciones, para obtener una serie bajo la metodología de caja.<br><br> Estos datos son informativos. Para más información sobre las estadísticas fiscales de Colombia, dirigirse al Ministerio de Hacienda y Crédito Público (https://www.minhacienda.gov.co).",
+    "data": [],
+    "metadataNotas": {
+      "idSerie": 930014,
+      "nivel": "1",
+      "idNivel": "6.2",
+      "nombre": "Gobiernos nacional central",
+      "notas": [],
+      "seriesHijas": [
+        {
+          "idSerie": 17677,
+          "nivel": "2",
+          "idNivel": "6.2.1",
+          "nombre": "Serie histórica balance fiscal gobierno nacional central",
+          "notas": [],
+          "seriesHijas": [
+            {
+              "idSerie": 16723,
+              "nivel": "3",
+              "idNivel": "6.2.1.2",
+              "nombre": "Gastos",
+              "notas": [
+                {
+                  "descripcion": "Los gastos, en la serie histórica del balance fiscal del Gobierno Nacional Central, incluyen los intereses, la variación de las cuentas por pagar y otros rubros de causación.",
+                  "fechaNotaDesde": "2023-01-01",
+                  "fechaNotaHasta": "",
+                  "tipo": "NOTA_ACLARATORIA",
+                  "estado": "ACTIVO"
+                }
+              ],
+              "seriesHijas": []
+            }
+          ]
+        }
+      ]
+    }
+  }
+]
