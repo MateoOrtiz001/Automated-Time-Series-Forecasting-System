@@ -9,6 +9,10 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
 import numpy as np
 import os
+from pathlib import Path
+from typing import Iterable, Optional, Tuple
+
+import pandas as pd
 from .customLayers import (
     GatedResidualNetwork, GatedLinearUnit, GateAddNorm, 
     MaskedMultiHeadAttention
@@ -118,6 +122,172 @@ class TFTModel:
         
         self.model = Model(inputs=inputs, outputs=outputs, name="TFT_Simplified")
         return self.model
+
+    @staticmethod
+    def load_latest_proc_csv(proc_dir: str | Path = "data/proc") -> pd.DataFrame:
+        """Carga el CSV más reciente dentro de `data/proc`."""
+        proc_path = Path(proc_dir)
+        if not proc_path.exists():
+            raise FileNotFoundError(f"No existe el directorio: {proc_path.resolve()}")
+
+        csvs = sorted(proc_path.glob("*.csv"), key=lambda p: p.stat().st_mtime, reverse=True)
+        if not csvs:
+            raise FileNotFoundError(f"No hay CSVs en: {proc_path.resolve()}")
+
+        df = pd.read_csv(csvs[0], parse_dates=["date"])
+        df = df.sort_values("date").reset_index(drop=True)
+        return df
+
+    @staticmethod
+    def make_supervised_windows(
+        df: pd.DataFrame,
+        feature_cols: Iterable[str],
+        target_col: str,
+        lookback_steps: int,
+        forecast_horizon: int = 1,
+    ) -> Tuple[np.ndarray, np.ndarray]:
+        """
+        Convierte un DataFrame (ordenado por fecha) en (X, y) para TS supervised.
+
+        - X: (N, lookback_steps, n_features)
+        - y: (N,) si horizon=1, o (N, horizon) si horizon>1
+        """
+        feature_cols = list(feature_cols)
+        if target_col not in df.columns:
+            raise ValueError(f"target_col '{target_col}' no está en df.columns")
+        for c in feature_cols:
+            if c not in df.columns:
+                raise ValueError(f"feature '{c}' no está en df.columns")
+
+        data_x = df[feature_cols].to_numpy(dtype=np.float32)
+        data_y = df[target_col].to_numpy(dtype=np.float32)
+
+        n_total = len(df)
+        max_start = n_total - lookback_steps - forecast_horizon + 1
+        if max_start <= 0:
+            raise ValueError(
+                f"No hay suficientes filas ({n_total}) para lookback={lookback_steps} y horizon={forecast_horizon}."
+            )
+
+        X = np.stack([data_x[i : i + lookback_steps] for i in range(max_start)], axis=0)
+
+        if forecast_horizon == 1:
+            y = np.array([data_y[i + lookback_steps] for i in range(max_start)], dtype=np.float32)
+        else:
+            y = np.stack(
+                [data_y[i + lookback_steps : i + lookback_steps + forecast_horizon] for i in range(max_start)],
+                axis=0,
+            ).astype(np.float32)
+
+        return X, y
+
+    @staticmethod
+    def time_split(
+        X: np.ndarray,
+        y: np.ndarray,
+        val_ratio: float = 0.1,
+        test_ratio: float = 0.1,
+    ):
+        """Split temporal (sin shuffle): train | val | test."""
+        n = len(X)
+        if n < 10:
+            raise ValueError("Muy pocos ejemplos para split.")
+
+        n_test = int(n * test_ratio)
+        n_val = int(n * val_ratio)
+        n_train = n - n_val - n_test
+        if n_train <= 0:
+            raise ValueError("val_ratio/test_ratio demasiado grandes.")
+
+        X_train, y_train = X[:n_train], y[:n_train]
+        X_val, y_val = X[n_train : n_train + n_val], y[n_train : n_train + n_val]
+        X_test, y_test = X[n_train + n_val :], y[n_train + n_val :]
+        return X_train, y_train, X_val, y_val, X_test, y_test
+
+    @staticmethod
+    def standardize_from_train(
+        X_train: np.ndarray,
+        X_val: Optional[np.ndarray] = None,
+        X_test: Optional[np.ndarray] = None,
+        eps: float = 1e-6,
+    ):
+        """Estandariza X usando media/std del train (calculadas sobre todos los timesteps)."""
+        flat = X_train.reshape(-1, X_train.shape[-1])
+        mean = flat.mean(axis=0)
+        std = flat.std(axis=0)
+        std = np.where(std < eps, 1.0, std)
+
+        def _tx(X):
+            if X is None:
+                return None
+            return ((X - mean) / std).astype(np.float32)
+
+        return _tx(X_train), _tx(X_val), _tx(X_test), mean, std
+
+    def fit_from_proc(
+        self,
+        proc_dir: str | Path = "data/proc",
+        target_col: str = "Inflacion_total",
+        feature_cols: Optional[Iterable[str]] = None,
+        val_ratio: float = 0.1,
+        test_ratio: float = 0.1,
+        standardize_X: bool = True,
+        dropna: bool = True,
+        **fit_kwargs,
+    ):
+        """
+        Carga el CSV procesado de `data/proc`, arma ventanas y llama `fit()`.
+
+        `fit_kwargs` se pasa a `self.fit(...)` (epochs, batch_size, patience, model_path, etc.).
+        """
+        df = self.load_latest_proc_csv(proc_dir)
+        if dropna:
+            df = df.dropna().reset_index(drop=True)
+
+        if feature_cols is None:
+            # Por defecto: todas las columnas numéricas excepto date
+            feature_cols = [c for c in df.columns if c != "date"]
+
+        X, y = self.make_supervised_windows(
+            df=df,
+            feature_cols=feature_cols,
+            target_col=target_col,
+            lookback_steps=self.lookback_steps,
+            forecast_horizon=self.forecast_horizon,
+        )
+
+        X_train, y_train, X_val, y_val, X_test, y_test = self.time_split(
+            X, y, val_ratio=val_ratio, test_ratio=test_ratio
+        )
+
+        if standardize_X:
+            X_train, X_val, X_test, mean, std = self.standardize_from_train(X_train, X_val, X_test)
+
+        # Asegurar compatibilidad de n_features
+        if X_train.shape[-1] != self.n_features:
+            self.n_features = int(X_train.shape[-1])
+            # reconstruir modelo si ya existía con otro n_features
+            self.model = None
+
+        history = self.fit(
+            X_train=X_train,
+            y_train=y_train,
+            X_val=X_val,
+            y_val=y_val,
+            **fit_kwargs,
+        )
+
+        return {
+            "history": history,
+            "X_train": X_train,
+            "y_train": y_train,
+            "X_val": X_val,
+            "y_val": y_val,
+            "X_test": X_test,
+            "y_test": y_test,
+            "df": df,
+            "feature_cols": list(feature_cols),
+        }
     
     def quantile_loss(self, y_true, y_pred):
         """
