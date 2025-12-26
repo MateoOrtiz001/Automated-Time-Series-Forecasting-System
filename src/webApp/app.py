@@ -112,22 +112,70 @@ VARIABLE_INFO = {
 # =============================================================================
 # FUNCIONES DE CARGA DE DATOS
 # =============================================================================
-@st.cache_data(ttl=3600)
-def load_data():
-    """Carga los datos procesados más recientes."""
+def get_latest_data_hash():
+    """Obtiene un hash basado en la fecha máxima de los datos disponibles.
+    
+    Esto permite invalidar el caché de Streamlit cuando hay datos más recientes.
+    """
     try:
-        df = TFTModel.load_latest_proc_csv(DATA_PROC_DIR)
-        df = df.dropna().reset_index(drop=True)
-        return df
+        df = load_data_internal()
+        if df is not None:
+            max_date = df["date"].max()
+            return f"{max_date.strftime('%Y%m%d')}_{len(df)}"
+    except:
+        pass
+    return "default"
+
+
+def load_data_internal():
+    """Carga datos priorizando latest.csv (para Streamlit Cloud)."""
+    # Priorizar latest.csv (archivo estático para Streamlit Cloud)
+    latest_file = DATA_PROC_DIR / "latest.csv"
+    if latest_file.exists():
+        df = pd.read_csv(latest_file)
+        df["date"] = pd.to_datetime(df["date"])
+        return df.dropna().reset_index(drop=True)
+    
+    # Fallback: buscar el CSV más reciente por timestamp
+    return TFTModel.load_latest_proc_csv(DATA_PROC_DIR)
+
+
+@st.cache_data(ttl=300)  # 5 minutos de TTL
+def load_data(_cache_key: str = None):
+    """Carga los datos procesados más recientes.
+    
+    El parámetro _cache_key (con _ para que Streamlit lo ignore en el display)
+    permite invalidar el caché cuando hay datos nuevos.
+    """
+    try:
+        df = load_data_internal()
+        if df is not None:
+            return df.dropna().reset_index(drop=True)
+        return None
     except Exception as e:
         st.error(f"Error cargando datos: {e}")
         return None
 
 
+def get_latest_model_name():
+    """Obtiene el nombre del modelo más reciente para control de caché."""
+    try:
+        if MISC_MODELS_DIR.exists():
+            finetuned = sorted(MISC_MODELS_DIR.glob("tft_finetuned_*.keras"), reverse=True)
+            if finetuned:
+                return finetuned[0].name
+        return "tft_base.keras"
+    except:
+        return "default"
+
+
 @st.cache_resource
-def load_model():
-    """Carga el modelo TFT más reciente."""
-    # Buscar modelo fine-tuned primero
+def load_model(_model_key: str = None):
+    """Carga el modelo TFT más reciente.
+    
+    El parámetro _model_key permite invalidar el caché cuando hay un modelo nuevo.
+    """
+    # Buscar modelo fine-tuned primero (el más reciente)
     model_path = None
     
     if MISC_MODELS_DIR.exists():
@@ -143,9 +191,12 @@ def load_model():
     if not model_path.exists():
         return None, None
     
-    # Cargar datos para obtener n_features
-    df = load_data()
-    if df is None:
+    # Cargar datos para obtener n_features (sin usar caché aquí)
+    try:
+        df = TFTModel.load_latest_proc_csv(DATA_PROC_DIR)
+        df = df.dropna().reset_index(drop=True)
+    except Exception as e:
+        st.error(f"Error cargando datos para modelo: {e}")
         return None, None
     
     feature_cols = [c for c in df.columns if c != "date"]
@@ -459,12 +510,28 @@ def main():
         show_confidence = st.checkbox("Mostrar intervalo de confianza", value=True)
         
         st.divider()
+        
+        # Botón para actualizar datos (limpiar caché)
+        st.subheader("🔄 Actualización")
+        if st.button("Refrescar datos", help="Limpia el caché y recarga los datos más recientes"):
+            st.cache_data.clear()
+            st.cache_resource.clear()
+            st.rerun()
     
-    # Cargar datos
-    df = load_data()
+    # Cargar datos con caché inteligente (se invalida cuando hay datos más recientes)
+    data_cache_key = get_latest_data_hash()
+    df = load_data(_cache_key=data_cache_key)
     if df is None:
         st.error("No se pudieron cargar los datos. Verifica que existan archivos en data/proc/")
         return
+    
+    # Mostrar información del rango de datos en la barra lateral
+    with st.sidebar:
+        st.subheader("📊 Datos Cargados")
+        data_start = df["date"].min().strftime("%Y-%m")
+        data_end = df["date"].max().strftime("%Y-%m")
+        st.success(f"Rango: {data_start} → {data_end}")
+        st.info(f"Total: {len(df)} meses")
     
     # Tabs principales
     tab1, tab2, tab3, tab4 = st.tabs([
@@ -483,8 +550,9 @@ def main():
         with col1:
             st.subheader("Predicción de Inflación a 12 Meses")
             
-            # Cargar o generar predicciones
-            model, model_name = load_model()
+            # Cargar o generar predicciones (con caché que se invalida cuando hay modelo nuevo)
+            model_cache_key = get_latest_model_name()
+            model, model_name = load_model(_model_key=model_cache_key)
             
             if model is None:
                 st.warning("No se encontró modelo entrenado. Entrena el modelo primero.")

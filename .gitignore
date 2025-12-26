@@ -1,0 +1,147 @@
+# =============================================================================
+# .gitignore - Automated Time Series Forecasting System
+# =============================================================================
+
+# =============================================================================
+# ARCHIVOS QUE SÍ SE VERSIONAN (para el dashboard de Streamlit)
+# =============================================================================
+# Estos archivos NO están en .gitignore:
+# - data/proc/latest.csv                  <- Datos actuales para dashboard
+# - misc/results/predictions_latest.csv   <- Predicciones para dashboard
+# - models/tft_best.keras                 <- Modelo base entrenado
+# - models/lstm_best.keras                <- Modelo alternativo
+# - misc/models/tft_base.keras            <- Copia del modelo base
+
+# =============================================================================
+# DATOS TEMPORALES (se regeneran con el pipeline)
+# =============================================================================
+# Datos crudos descargados de APIs
+data/raw/
+
+# CSVs procesados con timestamp (solo mantener latest.csv)
+data/proc/banrep__*.csv
+
+# =============================================================================
+# ARTEFACTOS DE PRODUCCIÓN (se regeneran mensualmente)
+# =============================================================================
+# Predicciones con timestamp (solo mantener predictions_latest.csv)
+misc/results/predictions_2*.csv
+misc/results/predictions_plot_*.png
+
+# Logs de ejecución
+misc/logs/
+
+# Modelos fine-tuned (muy pesados, ~50MB cada uno)
+misc/models/tft_finetuned_*.keras
+
+# =============================================================================
+# ESTADO DEL PIPELINE
+# =============================================================================
+# Estos archivos son locales de cada máquina pero GitHub Actions los actualiza
+# Descomentar si quieres ignorarlos localmente:
+# src/pipeline/pipeline_state.json
+# src/pipeline/system_state.json
+
+# =============================================================================
+# PYTHON
+# =============================================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+ENV/
+env/
+.env/
+.venv/
+env.bak/
+venv.bak/
+
+# =============================================================================
+# JUPYTER NOTEBOOKS
+# =============================================================================
+.ipynb_checkpoints/
+*.ipynb
+!notebooks/*.ipynb
+
+# =============================================================================
+# IDE / EDITORES
+# =============================================================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# =============================================================================
+# SISTEMA OPERATIVO
+# =============================================================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# =============================================================================
+# TESTING
+# =============================================================================
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+
+# =============================================================================
+# MISC
+# =============================================================================
+*.log
+*.bak
+*.tmp
+*.temp
+.env
+.env.local
+.env.*.local
+*.local
+
+# Archivos de configuración local
+config.local.py
+settings.local.py
+
+# Archivos grandes de datos de prueba
+*.pickle
+*.pkl
+!models/*.pkl

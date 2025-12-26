@@ -127,9 +127,14 @@ class TFTModel:
     def load_latest_proc_csv(proc_dir: str | Path = "data/proc") -> pd.DataFrame:
         """Carga el CSV "más reciente" dentro de `data/proc`.
 
+        Criterios de selección (en orden de prioridad):
+        1. Mayor fecha máxima en la columna 'date'
+        2. Mayor número de columnas (más features)
+        3. Timestamp más reciente en el nombre del archivo
+        
         Nota: En entornos como Streamlit Cloud / despliegues vía git, los tiempos
         de modificación (mtime) pueden no reflejar cuál CSV contiene la data más
-        actual. Por eso, elegimos el CSV cuyo `date.max()` sea mayor.
+        actual. Por eso, usamos múltiples criterios.
         """
         proc_path = Path(proc_dir)
         if not proc_path.exists():
@@ -139,9 +144,7 @@ class TFTModel:
         if not csvs:
             raise FileNotFoundError(f"No hay CSVs en: {proc_path.resolve()}")
 
-        best_df: Optional[pd.DataFrame] = None
-        best_end: Optional[pd.Timestamp] = None
-        best_path: Optional[Path] = None
+        candidates = []  # Lista de tuplas: (date_max, n_cols, timestamp_str, df, path)
 
         for p in csvs:
             df = pd.read_csv(p, parse_dates=["date"])
@@ -149,14 +152,21 @@ class TFTModel:
                 continue
             df = df.sort_values("date").reset_index(drop=True)
             end = pd.to_datetime(df["date"]).max()
-            if best_end is None or end > best_end:
-                best_end = end
-                best_df = df
-                best_path = p
+            n_cols = len(df.columns)
+            
+            # Extraer timestamp del nombre del archivo (ej: ...__20251225_212926.csv)
+            name_parts = p.stem.split("__")
+            timestamp_str = name_parts[-1] if name_parts else ""
+            
+            candidates.append((end, n_cols, timestamp_str, df, p))
 
-        if best_df is None:
+        if not candidates:
             raise FileNotFoundError(f"No se pudo seleccionar un CSV válido en: {proc_path.resolve()}")
 
+        # Ordenar por: 1) fecha máxima (desc), 2) número de columnas (desc), 3) timestamp nombre (desc)
+        candidates.sort(key=lambda x: (x[0], x[1], x[2]), reverse=True)
+        
+        best_df = candidates[0][3]
         return best_df
 
     @staticmethod

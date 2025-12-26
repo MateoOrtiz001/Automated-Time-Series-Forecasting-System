@@ -36,7 +36,6 @@ RUN pip install --upgrade pip && \
 
 # Copiar código fuente
 COPY src/ ./src/
-COPY misc/ ./misc/
 COPY feature_analysis.py .
 COPY test.py .
 COPY test2.py .
@@ -63,5 +62,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD python -c "import tensorflow; print('OK')" || exit 1
 
 # Comando por defecto: ejecutar pipeline completo
-ENTRYPOINT ["python", "src/pipeline/orchestrator.py"]
+ENTRYPOINT ["python", "-m", "src.pipeline.orchestrator"]
 CMD ["--mode", "full"]

@@ -1,23 +1,12 @@
 """
-Pipeline Mensual Automatizado para Predicción de Inflación
-============================================================
+Core del Pipeline de Predicción de Inflación.
 
-Este script automatiza:
-1. Descarga mensual de datos (BanRep, FAO, Brent)
-2. Consolidación de datos procesados
-3. Predicción de inflación a 12 meses usando modelo TFT
-4. Fine-tuning del modelo cada 3 meses
-
-Estructura de carpetas:
-- misc/models/          → Modelos (base y fine-tuned)
-- misc/results/         → Predicciones y métricas
-- misc/logs/            → Logs de ejecución
-
-Uso:
-    python misc/monthly_pipeline.py                    # Ejecución completa
-    python misc/monthly_pipeline.py --download-only    # Solo descargar datos
-    python misc/monthly_pipeline.py --predict-only     # Solo predicción
-    python misc/monthly_pipeline.py --finetune         # Forzar fine-tuning
+Este módulo contiene toda la lógica central del sistema:
+- Configuración global
+- Funciones de descarga de datos
+- Funciones de modelo (carga, predicción, fine-tuning)
+- Sistema de limpieza/rotación de archivos
+- Estado persistente del pipeline
 """
 
 import os
@@ -25,10 +14,10 @@ import sys
 import json
 import shutil
 import logging
-import argparse
 from pathlib import Path
 from datetime import datetime
-from typing import Optional, Dict, Any, Tuple
+from typing import Optional, Dict, Any, Tuple, List
+from collections import defaultdict
 
 import numpy as np
 import pandas as pd
@@ -37,9 +26,10 @@ matplotlib.use('Agg')  # Backend no interactivo para servidores
 import matplotlib.pyplot as plt
 
 # Configurar paths
-SCRIPT_DIR = Path(__file__).resolve().parent
-ROOT_DIR = SCRIPT_DIR.parent
-sys.path.insert(0, str(ROOT_DIR))
+PIPELINE_DIR = Path(__file__).resolve().parent  # src/pipeline
+SRC_DIR = PIPELINE_DIR.parent                    # src/
+ROOT_DIR = SRC_DIR.parent                        # raíz del proyecto
+MISC_DIR = ROOT_DIR / "misc"                     # misc/ (para logs, models, results)
 
 # Imports del proyecto
 from src.etl.dataExtractor import (
@@ -50,17 +40,30 @@ from src.etl.dataExtractor import (
 )
 from src.model.model import TFTModel
 
+
 # ============================================================================
-# CONFIGURACIÓN
+# CONFIGURACIÓN GLOBAL
 # ============================================================================
 CONFIG = {
-    # Rutas
-    "misc_dir": SCRIPT_DIR,
-    "models_dir": SCRIPT_DIR / "models",
-    "results_dir": SCRIPT_DIR / "results",
-    "logs_dir": SCRIPT_DIR / "logs",
+    # Rutas principales
+    "root_dir": ROOT_DIR,
+    "src_dir": SRC_DIR,
+    "pipeline_dir": PIPELINE_DIR,
+    "misc_dir": MISC_DIR,
+    
+    # Rutas de datos
     "data_raw_dir": ROOT_DIR / "data" / "raw",
     "data_proc_dir": ROOT_DIR / "data" / "proc",
+    
+    # Rutas del pipeline (fine-tuned models, predictions, logs)
+    "pipeline_models_dir": MISC_DIR / "models",
+    "pipeline_results_dir": MISC_DIR / "results",
+    "pipeline_logs_dir": MISC_DIR / "logs",
+    "pipeline_state_file": PIPELINE_DIR / "pipeline_state.json",
+    
+    # Rutas en raíz (para modelos base y resultados de análisis)
+    "models_dir": ROOT_DIR / "models",
+    "results_dir": ROOT_DIR / "results",
     
     # Modelo
     "base_model": "tft_base.keras",
@@ -76,9 +79,21 @@ CONFIG = {
     "finetune_batch_size": 32,
     "finetune_lr": 5e-4,
     
+    # Entrenamiento desde cero
+    "train_epochs": 200,
+    "train_batch_size": 64,
+    "train_patience": 40,
+    "train_lr": 1e-3,
+    
     # Split ratios
     "val_ratio": 0.1,
     "test_ratio": 0.1,
+    
+    # Sistema de rotación (mantener solo N versiones de cada tipo de archivo)
+    "max_data_versions": 2,
+    "max_model_versions": 2,
+    "max_prediction_versions": 2,
+    "max_raw_versions": 2,
 }
 
 # Descripciones de variables
@@ -96,12 +111,20 @@ VARIABLE_DESCRIPTIONS = {
 # ============================================================================
 # LOGGING
 # ============================================================================
-def setup_logging() -> logging.Logger:
-    """Configura logging a archivo y consola."""
-    log_file = CONFIG["logs_dir"] / f"pipeline_{datetime.now().strftime('%Y%m')}.log"
+def setup_logging(log_dir: Path = None) -> logging.Logger:
+    """Configura logging a archivo y consola.
+    
+    Args:
+        log_dir: Directorio para logs. Por defecto usa misc/logs.
+    
+    Returns:
+        Logger configurado.
+    """
+    log_dir = log_dir or CONFIG["pipeline_logs_dir"]
+    log_file = log_dir / f"pipeline_{datetime.now().strftime('%Y%m')}.log"
     
     # Crear directorio si no existe
-    CONFIG["logs_dir"].mkdir(parents=True, exist_ok=True)
+    log_dir.mkdir(parents=True, exist_ok=True)
     
     logging.basicConfig(
         level=logging.INFO,
@@ -123,7 +146,7 @@ class PipelineState:
     """Maneja el estado persistente del pipeline."""
     
     def __init__(self, state_file: Path = None):
-        self.state_file = state_file or (CONFIG["misc_dir"] / "pipeline_state.json")
+        self.state_file = state_file or CONFIG["pipeline_state_file"]
         self.state = self._load_state()
     
     def _load_state(self) -> Dict[str, Any]:
@@ -142,6 +165,7 @@ class PipelineState:
     
     def save(self):
         """Guarda estado a archivo."""
+        self.state_file.parent.mkdir(parents=True, exist_ok=True)
         with open(self.state_file, "w", encoding="utf-8") as f:
             json.dump(self.state, f, indent=2, default=str)
     
@@ -173,47 +197,252 @@ class PipelineState:
 
 
 # ============================================================================
-# FUNCIONES DE DESCARGA
+# LIMPIEZA DE ARCHIVOS (SISTEMA DE ROTACIÓN)
+# ============================================================================
+def cleanup_old_files(
+    directory: Path,
+    pattern: str,
+    max_versions: int,
+    logger: logging.Logger,
+    sort_by_date_in_name: bool = True,
+) -> List[Path]:
+    """Elimina archivos antiguos manteniendo solo las últimas `max_versions` versiones.
+    
+    Args:
+        directory: Directorio donde buscar archivos.
+        pattern: Patrón glob para filtrar archivos (ej: "*.csv", "tft_finetuned_*.keras").
+        max_versions: Número máximo de versiones a mantener.
+        logger: Logger para registrar operaciones.
+        sort_by_date_in_name: Si True, ordena por timestamp en el nombre del archivo.
+                              Si False, ordena por fecha de modificación del archivo.
+    
+    Returns:
+        Lista de archivos eliminados.
+    """
+    if not directory.exists():
+        return []
+    
+    files = list(directory.glob(pattern))
+    
+    if len(files) <= max_versions:
+        return []
+    
+    if sort_by_date_in_name:
+        def extract_timestamp(p: Path) -> str:
+            name = p.stem
+            parts = name.split("__")
+            for part in reversed(parts):
+                if len(part) >= 8 and part[:8].isdigit():
+                    return part
+            parts = name.split("_")
+            for part in parts:
+                if len(part) == 6 and part.isdigit():
+                    return part
+            return name
+        
+        files = sorted(files, key=extract_timestamp, reverse=True)
+    else:
+        files = sorted(files, key=lambda p: p.stat().st_mtime, reverse=True)
+    
+    files_to_delete = files[max_versions:]
+    deleted = []
+    
+    for f in files_to_delete:
+        try:
+            f.unlink()
+            deleted.append(f)
+            logger.info(f"   [CLEANUP] Eliminado: {f.name}")
+        except Exception as e:
+            logger.warning(f"   [CLEANUP] No se pudo eliminar {f.name}: {e}")
+    
+    return deleted
+
+
+def cleanup_raw_data(logger: logging.Logger) -> Dict[str, List[Path]]:
+    """Limpia archivos raw antiguos manteniendo solo las últimas N versiones por serie."""
+    result = {}
+    
+    # Limpiar archivos JSON de BanRep/SUAMECA
+    suameca_dir = CONFIG["data_raw_dir"] / "banrep" / "suameca"
+    if suameca_dir.exists():
+        series_files: Dict[str, List[Path]] = defaultdict(list)
+        
+        for f in suameca_dir.glob("*.json"):
+            if "manifest" in f.name.lower():
+                continue
+            parts = f.stem.split("__")
+            if len(parts) >= 3:
+                serie = parts[2]
+                series_files[serie].append(f)
+        
+        for serie, files in series_files.items():
+            if len(files) <= CONFIG["max_raw_versions"]:
+                continue
+            
+            files = sorted(files, key=lambda p: p.stem.split("__")[-1] if "__" in p.stem else "", reverse=True)
+            to_delete = files[CONFIG["max_raw_versions"]:]
+            
+            deleted = []
+            for f in to_delete:
+                try:
+                    f.unlink()
+                    deleted.append(f)
+                    logger.info(f"   [CLEANUP RAW] Eliminado: {f.name}")
+                except Exception as e:
+                    logger.warning(f"   [CLEANUP RAW] No se pudo eliminar {f.name}: {e}")
+            
+            if deleted:
+                result[serie] = deleted
+    
+    # Limpiar archivos externos (Brent, FAO)
+    external_dir = CONFIG["data_raw_dir"] / "external"
+    if external_dir.exists():
+        for prefix in ["brent__", "fao__"]:
+            files = sorted(external_dir.glob(f"{prefix}*.csv"), reverse=True)
+            if len(files) > CONFIG["max_raw_versions"]:
+                for f in files[CONFIG["max_raw_versions"]:]:
+                    try:
+                        f.unlink()
+                        logger.info(f"   [CLEANUP RAW] Eliminado: {f.name}")
+                        result.setdefault("external", []).append(f)
+                    except Exception as e:
+                        logger.warning(f"   [CLEANUP RAW] No se pudo eliminar {f.name}: {e}")
+    
+    return result
+
+
+def cleanup_processed_data(logger: logging.Logger) -> List[Path]:
+    """Limpia archivos CSV procesados antiguos."""
+    return cleanup_old_files(
+        directory=CONFIG["data_proc_dir"],
+        pattern="*.csv",
+        max_versions=CONFIG["max_data_versions"],
+        logger=logger,
+    )
+
+
+def cleanup_models(logger: logging.Logger) -> List[Path]:
+    """Limpia modelos fine-tuned antiguos (NO elimina tft_base.keras)."""
+    return cleanup_old_files(
+        directory=CONFIG["pipeline_models_dir"],
+        pattern="tft_finetuned_*.keras",
+        max_versions=CONFIG["max_model_versions"],
+        logger=logger,
+    )
+
+
+def cleanup_predictions(logger: logging.Logger) -> List[Path]:
+    """Limpia archivos de predicciones antiguos."""
+    deleted = []
+    
+    # CSVs de predicciones
+    deleted.extend(cleanup_old_files(
+        directory=CONFIG["pipeline_results_dir"],
+        pattern="predictions_*.csv",
+        max_versions=CONFIG["max_prediction_versions"],
+        logger=logger,
+    ))
+    
+    # Gráficos de predicciones
+    deleted.extend(cleanup_old_files(
+        directory=CONFIG["pipeline_results_dir"],
+        pattern="predictions_plot_*.png",
+        max_versions=CONFIG["max_prediction_versions"],
+        logger=logger,
+    ))
+    
+    return deleted
+
+
+def run_full_cleanup(logger: logging.Logger) -> Dict[str, Any]:
+    """Ejecuta limpieza completa de archivos antiguos.
+    
+    Returns:
+        Resumen de archivos eliminados.
+    """
+    logger.info("\n[CLEANUP] Limpiando archivos antiguos...")
+    
+    summary = {
+        "raw_data": {},
+        "processed_data": [],
+        "models": [],
+        "predictions": [],
+    }
+    
+    try:
+        summary["raw_data"] = cleanup_raw_data(logger)
+    except Exception as e:
+        logger.warning(f"   [CLEANUP] Error limpiando datos raw: {e}")
+    
+    try:
+        summary["processed_data"] = [str(p) for p in cleanup_processed_data(logger)]
+    except Exception as e:
+        logger.warning(f"   [CLEANUP] Error limpiando datos procesados: {e}")
+    
+    try:
+        summary["models"] = [str(p) for p in cleanup_models(logger)]
+    except Exception as e:
+        logger.warning(f"   [CLEANUP] Error limpiando modelos: {e}")
+    
+    try:
+        summary["predictions"] = [str(p) for p in cleanup_predictions(logger)]
+    except Exception as e:
+        logger.warning(f"   [CLEANUP] Error limpiando predicciones: {e}")
+    
+    total = (
+        sum(len(v) for v in summary["raw_data"].values()) +
+        len(summary["processed_data"]) +
+        len(summary["models"]) +
+        len(summary["predictions"])
+    )
+    
+    logger.info(f"[CLEANUP] Total archivos eliminados: {total}")
+    
+    return summary
+
+
+# ============================================================================
+# DESCARGA DE DATOS
 # ============================================================================
 def download_all_data(logger: logging.Logger) -> bool:
     """Descarga todos los datos necesarios."""
-    logger.info("="*60)
+    logger.info("=" * 60)
     logger.info("INICIANDO DESCARGA DE DATOS")
-    logger.info("="*60)
+    logger.info("=" * 60)
     
     success = True
     
-    # 1. Datos BanRep (SUAMECA)
+    # Datos BanRep (SUAMECA)
     logger.info("\n[1/3] Descargando datos de BanRep (SUAMECA)...")
     try:
         extraer_suameca_sin_api(output_dir=str(CONFIG["data_raw_dir"] / "banrep" / "suameca"))
-        logger.info(" BanRep descargado correctamente")
+        logger.info("✓ BanRep descargado correctamente")
     except Exception as e:
-        logger.error(f" Error descargando BanRep: {e}")
+        logger.error(f"✗ Error descargando BanRep: {e}")
         success = False
     
-    # 2. Datos FAO
+    # Datos FAO
     logger.info("\n[2/3] Descargando índice FAO...")
     try:
         external_dir = CONFIG["data_raw_dir"] / "external"
         external_dir.mkdir(parents=True, exist_ok=True)
         extraer_fao_indices(output_dir=str(external_dir))
-        logger.info(" FAO descargado correctamente")
+        logger.info("✓ FAO descargado correctamente")
     except Exception as e:
-        logger.error(f" Error descargando FAO: {e}")
+        logger.error(f"✗ Error descargando FAO: {e}")
         success = False
     
-    # 3. Datos Brent (FRED)
+    # Datos Brent (FRED)
     logger.info("\n[3/3] Descargando precio Brent (FRED)...")
     try:
         external_dir = CONFIG["data_raw_dir"] / "external"
         extraer_brent_fred(output_dir=str(external_dir))
-        logger.info(" Brent descargado correctamente")
+        logger.info("✓ Brent descargado correctamente")
     except Exception as e:
-        logger.error(f" Error descargando Brent: {e}")
+        logger.error(f"✗ Error descargando Brent: {e}")
         success = False
     
-    # 4. Consolidar datos
+    # Consolidar datos
     if success:
         logger.info("\n[4/4] Consolidando datos procesados...")
         try:
@@ -222,9 +451,9 @@ def download_all_data(logger: logging.Logger) -> bool:
                 proc_dir=str(CONFIG["data_proc_dir"]),
                 external_dir=str(CONFIG["data_raw_dir"] / "external"),
             )
-            logger.info(" Datos consolidados correctamente")
+            logger.info("✓ Datos consolidados correctamente")
         except Exception as e:
-            logger.error(f" Error consolidando datos: {e}")
+            logger.error(f"✗ Error consolidando datos: {e}")
             success = False
     
     return success
@@ -235,14 +464,12 @@ def download_all_data(logger: logging.Logger) -> bool:
 # ============================================================================
 def load_model(logger: logging.Logger, state: PipelineState) -> Tuple[TFTModel, str]:
     """Carga el modelo más reciente (base o fine-tuned)."""
-    models_dir = CONFIG["models_dir"]
+    models_dir = CONFIG["pipeline_models_dir"]
     
-    # Buscar el modelo más reciente
     current_model = state.state["current_model"]
     model_path = models_dir / current_model
     
     if not model_path.exists():
-        # Fallback al modelo base
         model_path = models_dir / CONFIG["base_model"]
         if not model_path.exists():
             raise FileNotFoundError(f"No se encontró el modelo base en {model_path}")
@@ -275,7 +502,7 @@ def load_model(logger: logging.Logger, state: PipelineState) -> Tuple[TFTModel, 
     return tft, model_path.name
 
 
-def prepare_data(logger: logging.Logger) -> Tuple[pd.DataFrame, list, np.ndarray, np.ndarray]:
+def prepare_data(logger: logging.Logger) -> Tuple[pd.DataFrame, List, np.ndarray, np.ndarray]:
     """Prepara los datos para predicción/entrenamiento."""
     df = TFTModel.load_latest_proc_csv(CONFIG["data_proc_dir"])
     df = df.dropna().reset_index(drop=True)
@@ -310,7 +537,7 @@ def prepare_data(logger: logging.Logger) -> Tuple[pd.DataFrame, list, np.ndarray
 def predict_future(
     model: TFTModel,
     df: pd.DataFrame,
-    feature_cols: list,
+    feature_cols: List,
     mean: np.ndarray,
     std: np.ndarray,
     logger: logging.Logger,
@@ -319,11 +546,9 @@ def predict_future(
     """Realiza predicciones iterativas para los próximos n_months meses."""
     logger.info(f"\nPrediciendo {n_months} meses futuros...")
     
-    # Preparar datos
     data_features = df[feature_cols].to_numpy(dtype=np.float32)
     target_idx = feature_cols.index(CONFIG["target_col"])
     
-    # Ventana inicial
     current_window = data_features[-CONFIG["lookback_steps"]:].copy()
     current_window_std = ((current_window - mean) / std).astype(np.float32)
     
@@ -353,7 +578,6 @@ def predict_future(
             "upper": upper,
         })
         
-        # Actualizar ventana
         new_row = current_window[-1].copy()
         new_row[target_idx] = pred_value
         current_window = np.vstack([current_window[1:], new_row])
@@ -372,16 +596,15 @@ def predict_future(
 def finetune_model(
     model: TFTModel,
     df: pd.DataFrame,
-    feature_cols: list,
+    feature_cols: List,
     logger: logging.Logger,
     state: PipelineState,
 ) -> TFTModel:
     """Realiza fine-tuning del modelo con los datos más recientes."""
-    logger.info("\n" + "="*60)
+    logger.info("\n" + "=" * 60)
     logger.info("INICIANDO FINE-TUNING DEL MODELO")
-    logger.info("="*60)
+    logger.info("=" * 60)
     
-    # Preparar datos
     X, y = TFTModel.make_supervised_windows(
         df=df,
         feature_cols=feature_cols,
@@ -400,16 +623,15 @@ def finetune_model(
     logger.info(f"Val: {X_val.shape[0] if X_val is not None else 0} samples")
     logger.info(f"Test: {X_test.shape[0] if X_test is not None else 0} samples")
     
-    # Nombre del modelo fine-tuned
     timestamp = datetime.now().strftime("%Y%m")
     finetune_count = state.state["finetune_count"] + 1
     new_model_name = f"tft_finetuned_{timestamp}_v{finetune_count}.keras"
-    new_model_path = CONFIG["models_dir"] / new_model_name
+    new_model_path = CONFIG["pipeline_models_dir"] / new_model_name
     
-    # Re-compilar con learning rate más bajo
+    CONFIG["pipeline_models_dir"].mkdir(parents=True, exist_ok=True)
+    
     model.compile(learning_rate=CONFIG["finetune_lr"])
     
-    # Fine-tuning
     logger.info(f"\nEntrenando {CONFIG['finetune_epochs']} épocas con lr={CONFIG['finetune_lr']}...")
     
     history = model.fit(
@@ -424,7 +646,6 @@ def finetune_model(
         model_path=str(new_model_path),
     )
     
-    # Evaluar
     logger.info("\nEvaluación post fine-tuning:")
     
     for name, X, y_true in [("Train", X_train, y_train), ("Val", X_val, y_val), ("Test", X_test, y_test)]:
@@ -434,38 +655,102 @@ def finetune_model(
         y_pred = preds.get("median", preds.get("predictions"))
         y_pred = np.ravel(y_pred)
         if y_pred.size >= 3 * len(y_true):
-            # Tiene 3 cuantiles, tomar la mediana
             y_pred = y_pred.reshape(-1, 3)[:, 1]
         
         mae = np.mean(np.abs(y_true - y_pred))
         rmse = np.sqrt(np.mean((y_true - y_pred) ** 2))
         logger.info(f"  {name}: MAE={mae:.4f}, RMSE={rmse:.4f}")
     
-    # Actualizar estado
     state.update("last_finetune", datetime.now().isoformat())
     state.update("finetune_count", finetune_count)
     state.update("current_model", new_model_name)
     
-    logger.info(f"\n Modelo guardado: {new_model_name}")
+    logger.info(f"\n✓ Modelo guardado: {new_model_name}")
     
     return model
 
 
+def train_model_from_scratch(
+    logger: logging.Logger,
+    epochs: int = None,
+) -> Tuple[TFTModel, str]:
+    """Entrena un modelo TFT desde cero."""
+    logger.info("\n" + "=" * 60)
+    logger.info("ENTRENAMIENTO DE MODELO DESDE CERO")
+    logger.info("=" * 60)
+    
+    epochs = epochs or CONFIG["train_epochs"]
+    models_dir = CONFIG["models_dir"]
+    models_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Cargar y preparar datos
+    df, feature_cols, mean, std = prepare_data(logger)
+    
+    X, y = TFTModel.make_supervised_windows(
+        df=df,
+        feature_cols=feature_cols,
+        target_col=CONFIG["target_col"],
+        lookback_steps=CONFIG["lookback_steps"],
+        forecast_horizon=CONFIG["forecast_horizon"],
+    )
+    
+    X_train, y_train, X_val, y_val, X_test, y_test = TFTModel.time_split(
+        X, y, val_ratio=CONFIG["val_ratio"], test_ratio=CONFIG["test_ratio"]
+    )
+    
+    X_train, X_val, X_test, _, _ = TFTModel.standardize_from_train(X_train, X_val, X_test)
+    
+    logger.info(f"Train: {len(X_train)}, Val: {len(X_val) if X_val is not None else 0}, Test: {len(X_test) if X_test is not None else 0}")
+    
+    # Crear y entrenar modelo
+    tft = TFTModel(
+        lookback_steps=CONFIG["lookback_steps"],
+        forecast_horizon=CONFIG["forecast_horizon"],
+        n_features=len(feature_cols),
+        units=74,
+        num_heads=2,
+        num_lstm_layers=1,
+        num_grn_layers=2,
+        dropout_rate=0.1,
+        num_quantiles=3,
+    )
+    
+    tft.compile(learning_rate=CONFIG["train_lr"])
+    
+    model_path = models_dir / "tft_best.keras"
+    tft.fit(
+        X_train=X_train,
+        y_train=y_train,
+        X_val=X_val,
+        y_val=y_val,
+        epochs=epochs,
+        batch_size=CONFIG["train_batch_size"],
+        patience=CONFIG["train_patience"],
+        save_best=True,
+        model_path=str(model_path),
+    )
+    
+    logger.info(f"✓ Modelo guardado: {model_path}")
+    
+    return tft, str(model_path)
+
+
+# ============================================================================
+# GUARDADO DE RESULTADOS
+# ============================================================================
 def save_predictions(pred_df: pd.DataFrame, model_name: str, logger: logging.Logger) -> Path:
     """Guarda las predicciones en CSV."""
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     
-    # Añadir metadatos
     pred_df = pred_df.copy()
     pred_df["model"] = model_name
     pred_df["generated_at"] = timestamp
     
-    # Guardar
-    output_path = CONFIG["results_dir"] / f"predictions_{timestamp}.csv"
-    CONFIG["results_dir"].mkdir(parents=True, exist_ok=True)
+    output_path = CONFIG["pipeline_results_dir"] / f"predictions_{timestamp}.csv"
+    CONFIG["pipeline_results_dir"].mkdir(parents=True, exist_ok=True)
     pred_df.to_csv(output_path, index=False)
     
-    logger.info(f" Predicciones guardadas: {output_path.name}")
+    logger.info(f"✓ Predicciones guardadas: {output_path.name}")
     
     return output_path
 
@@ -479,7 +764,6 @@ def plot_predictions(
     """Genera gráfico de predicciones."""
     fig, ax = plt.subplots(figsize=(14, 6))
     
-    # Datos históricos (últimos 36 meses)
     recent_df = df.tail(36)
     ax.plot(
         recent_df["date"],
@@ -489,7 +773,6 @@ def plot_predictions(
         linewidth=2,
     )
     
-    # Predicciones
     ax.plot(
         pred_df["date"],
         pred_df["prediction"],
@@ -501,7 +784,6 @@ def plot_predictions(
         markersize=4,
     )
     
-    # Intervalo de confianza
     if pred_df["lower"].notna().any():
         ax.fill_between(
             pred_df["date"],
@@ -512,7 +794,6 @@ def plot_predictions(
             label="IC 80%",
         )
     
-    # Línea vertical de corte
     ax.axvline(x=df["date"].iloc[-1], color="gray", linestyle=":", alpha=0.7)
     
     ax.set_title(f"Predicción de {CONFIG['target_col']} - {datetime.now().strftime('%Y-%m-%d')}")
@@ -523,13 +804,12 @@ def plot_predictions(
     
     plt.tight_layout()
     
-    # Guardar
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    plot_path = CONFIG["results_dir"] / f"predictions_plot_{timestamp}.png"
+    plot_path = CONFIG["pipeline_results_dir"] / f"predictions_plot_{timestamp}.png"
     plt.savefig(plot_path, dpi=150, bbox_inches="tight")
     plt.close()
     
-    logger.info(f" Gráfico guardado: {plot_path.name}")
+    logger.info(f"✓ Gráfico guardado: {plot_path.name}")
     
     return plot_path
 
@@ -541,35 +821,53 @@ def run_pipeline(
     download: bool = True,
     predict: bool = True,
     force_finetune: bool = False,
+    cleanup: bool = True,
     logger: logging.Logger = None,
 ) -> Dict[str, Any]:
-    """Ejecuta el pipeline completo."""
+    """Ejecuta el pipeline completo.
+    
+    Args:
+        download: Si descarga nuevos datos.
+        predict: Si genera predicciones.
+        force_finetune: Si fuerza fine-tuning del modelo.
+        cleanup: Si ejecuta limpieza de archivos antiguos después de cada operación.
+        logger: Logger para registrar operaciones.
+    
+    Returns:
+        Diccionario con resultados del pipeline.
+    """
     if logger is None:
         logger = setup_logging()
     
     state = PipelineState()
-    results = {"success": True, "errors": []}
+    results = {"success": True, "errors": [], "cleanup": {}}
     
-    logger.info("\n" + "="*70)
+    logger.info("\n" + "=" * 70)
     logger.info("PIPELINE MENSUAL DE PREDICCIÓN DE INFLACIÓN")
-    logger.info("="*70)
+    logger.info("=" * 70)
     logger.info(f"Fecha de ejecución: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     logger.info(f"Modelo actual: {state.state['current_model']}")
     logger.info(f"Último fine-tuning: {state.state['last_finetune'] or 'Nunca'}")
+    logger.info(f"Sistema de rotación: max_data={CONFIG['max_data_versions']}, max_models={CONFIG['max_model_versions']}")
     
-    # 1. Descarga de datos
+    # Descarga de datos
     if download:
         try:
             download_success = download_all_data(logger)
             state.update("last_download", datetime.now().isoformat())
             if not download_success:
                 results["errors"].append("Algunos datos no se descargaron correctamente")
+            
+            if cleanup:
+                logger.info("\n[POST-DOWNLOAD] Limpiando datos antiguos...")
+                cleanup_raw_data(logger)
+                cleanup_processed_data(logger)
         except Exception as e:
             logger.error(f"Error en descarga: {e}")
             results["errors"].append(str(e))
             results["success"] = False
     
-    # 2. Cargar modelo y datos
+    # Cargar modelo y datos
     if predict or force_finetune:
         try:
             model, model_name = load_model(logger, state)
@@ -580,26 +878,27 @@ def run_pipeline(
             results["success"] = False
             return results
     
-    # 3. Fine-tuning (si corresponde)
+    # Fine-tuning (si corresponde)
     if force_finetune or (predict and state.should_finetune()):
         try:
-            logger.info("\n Se requiere fine-tuning del modelo")
+            logger.info("\n⚡ Se requiere fine-tuning del modelo")
             model = finetune_model(model, df, feature_cols, logger, state)
             model_name = state.state["current_model"]
             
-            # Recargar mean/std después del fine-tuning
             df, feature_cols, mean, std = prepare_data(logger)
+            
+            if cleanup:
+                logger.info("\n[POST-FINETUNE] Limpiando modelos antiguos...")
+                cleanup_models(logger)
         except Exception as e:
             logger.error(f"Error en fine-tuning: {e}")
             results["errors"].append(str(e))
-            # Continuar con predicción usando modelo actual
     
-    # 4. Predicción
+    # Predicción
     if predict:
         try:
             pred_df = predict_future(model, df, feature_cols, mean, std, logger)
             
-            # Guardar resultados
             csv_path = save_predictions(pred_df, model_name, logger)
             plot_path = plot_predictions(df, pred_df, model_name, logger)
             
@@ -614,81 +913,30 @@ def run_pipeline(
             results["csv_path"] = str(csv_path)
             results["plot_path"] = str(plot_path)
             
+            if cleanup:
+                logger.info("\n[POST-PREDICTION] Limpiando predicciones antiguas...")
+                cleanup_predictions(logger)
+            
         except Exception as e:
             logger.error(f"Error en predicción: {e}")
             results["errors"].append(str(e))
             results["success"] = False
     
+    # Limpieza final
+    if cleanup:
+        logger.info("\n[FINAL CLEANUP] Ejecutando limpieza completa...")
+        results["cleanup"] = run_full_cleanup(logger)
+    
     # Resumen final
-    logger.info("\n" + "="*70)
+    logger.info("\n" + "=" * 70)
     if results["success"] and not results["errors"]:
-        logger.info(" PIPELINE COMPLETADO EXITOSAMENTE")
+        logger.info("✓ PIPELINE COMPLETADO EXITOSAMENTE")
     elif results["errors"]:
-        logger.warning(f" PIPELINE COMPLETADO CON ADVERTENCIAS: {len(results['errors'])} errores")
+        logger.warning(f"⚠ PIPELINE COMPLETADO CON ADVERTENCIAS: {len(results['errors'])} errores")
         for err in results["errors"]:
             logger.warning(f"   - {err}")
     else:
-        logger.error(" PIPELINE FALLIDO")
-    logger.info("="*70 + "\n")
+        logger.error("✗ PIPELINE FALLIDO")
+    logger.info("=" * 70 + "\n")
     
     return results
-
-
-# ============================================================================
-# CLI
-# ============================================================================
-def main():
-    parser = argparse.ArgumentParser(
-        description="Pipeline mensual para predicción de inflación",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Ejemplos:
-  python misc/monthly_pipeline.py                    # Ejecución completa
-  python misc/monthly_pipeline.py --download-only    # Solo descargar datos
-  python misc/monthly_pipeline.py --predict-only     # Solo predicción
-  python misc/monthly_pipeline.py --finetune         # Forzar fine-tuning
-        """,
-    )
-    
-    parser.add_argument(
-        "--download-only",
-        action="store_true",
-        help="Solo descargar y consolidar datos",
-    )
-    parser.add_argument(
-        "--predict-only",
-        action="store_true",
-        help="Solo realizar predicción (sin descargar)",
-    )
-    parser.add_argument(
-        "--finetune",
-        action="store_true",
-        help="Forzar fine-tuning del modelo",
-    )
-    parser.add_argument(
-        "--no-download",
-        action="store_true",
-        help="Omitir descarga de datos",
-    )
-    
-    args = parser.parse_args()
-    
-    # Determinar qué ejecutar
-    download = not args.predict_only and not args.no_download
-    predict = not args.download_only
-    force_finetune = args.finetune
-    
-    logger = setup_logging()
-    
-    results = run_pipeline(
-        download=download,
-        predict=predict,
-        force_finetune=force_finetune,
-        logger=logger,
-    )
-    
-    return 0 if results["success"] else 1
-
-
-if __name__ == "__main__":
-    sys.exit(main())

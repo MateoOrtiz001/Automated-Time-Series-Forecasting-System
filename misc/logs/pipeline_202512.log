@@ -281,3 +281,173 @@ Predicciones (Inflacion_total):
 2025-12-25 21:45:08,535 - INFO -  PIPELINE COMPLETADO EXITOSAMENTE
 2025-12-25 21:45:08,535 - INFO - ======================================================================
 
+2025-12-25 22:26:17,534 - INFO - 
+======================================================================
+2025-12-25 22:26:17,535 - INFO - PIPELINE MENSUAL DE PREDICCIÓN DE INFLACIÓN
+2025-12-25 22:26:17,535 - INFO - ======================================================================
+2025-12-25 22:26:17,535 - INFO - Fecha de ejecución: 2025-12-25 22:26:17
+2025-12-25 22:26:17,535 - INFO - Modelo actual: tft_finetuned_202512_v1.keras
+2025-12-25 22:26:17,536 - INFO - Último fine-tuning: 2025-12-25T21:21:49.533732
+2025-12-25 22:26:17,536 - INFO - Cargando modelo: tft_finetuned_202512_v1.keras
+2025-12-25 22:26:18,576 - WARNING - From C:\Users\mateo\anaconda3\Lib\site-packages\keras\src\backend\tensorflow\core.py:216: The name tf.placeholder is deprecated. Please use tf.compat.v1.placeholder instead.
+
+2025-12-25 22:26:19,276 - ERROR - Error cargando modelo/datos: A total of 1 objects could not be loaded. Example error message for object <Dense name=input_projection, built=True>:
+
+The shape of the target variable and the shape of the target value in `variable.assign(value)` must match. variable.shape=(5, 74), Received: value.shape=(7, 74). Target variable: <Variable path=input_projection/kernel, shape=(5, 74), dtype=float32, value=[[ 0.25103846 -0.01289839  0.1615836  -0.13366365 -0.12804806 -0.01004913
+   0.00115129  0.26869294  0.23223981 -0.03819977  0.27308157 -0.13377017
+  -0.15275389 -0.26578173  0.09530678  0.16017127 -0.22137862 -0.14146331
+   0.22331339 -0.0241805   0.1351659  -0.05916175 -0.17202671  0.14183751
+  -0.01492685  0.04926124 -0.19602653  0.22905877 -0.2337774  -0.01315898
+   0.02887273  0.11607322 -0.02536491 -0.1066741  -0.12152909 -0.14640574
+  -0.2551185   0.12238687  0.18781957 -0.07299666 -0.20418671 -0.03483334
+  -0.23189598 -0.18103002  0.21458828 -0.26629573 -0.13007554  0.21503744
+  -0.0626471  -0.0399823  -0.04789214 -0.22582552 -0.12741026 -0.16314384
+   0.1666851  -0.03566965  0.06369308  0.2210125  -0.02060744 -0.05456257
+   0.11570245 -0.1380271   0.08850855  0.26056108 -0.16372585  0.10756397
+  -0.1908888  -0.10463014  0.24074683 -0.23847982  0.22699943 -0.26475495
+  -0.02199021 -0.12211137]
+ [-0.02389476 -0.23820917 -0.06137787  0.27288732 -0.15713513 -0.23997429
+  -0.23107092  0.19666341 -0.02241796  0.2640113   0.09283447 -0.10997076
+   0.0693427  -0.08709897 -0.12248865  0.26802185  0.14645895  0.10393229
+  -0.07868321  0.27193126  0.20235232 -0.1386147   0.20873326  0.07807446
+   0.06303918  0.1768612  -0.04244284 -0.16435525  0.05931696  0.129332
+  -0.26901042  0.21348667 -0.15081275 -0.11550967  0.17402509 -0.26560655
+   0.07996783  0.08565089  0.17624101 -0.04297282  0.14993775  0.01940161
+   0.06875634 -0.19808692 -0.05273858  0.08367538  0.05534789 -0.05405426
+  -0.05289423 -0.09326872 -0.09842852 -0.12494387 -0.009074    0.02168021
+  -0.25322783  0.05929795 -0.25751406 -0.1430752   0.10734293 -0.09763099
+  -0.15636033 -0.13456146 -0.21527945  0.10311005  0.13398424  0.01731065
+  -0.12471482 -0.15453444  0.06384623  0.03943321  0.00165918  0.0998885
+  -0.10151899  0.21211067]
+ [ 0.16960889  0.14285398 -0.1451122   0.03369749  0.23393944  0.08019128
+   0.27493408  0.0712496   0.06126553  0.00880462  0.05253306 -0.03197937
+  -0.06558159 -0.08590661  0.12432933  0.16559145  0.26510784 -0.12253366
+  -0.19584793  0.2345548   0.1615577   0.01321694  0.1615097   0.07655495
+  -0.03575033  0.0334534   0.17483884 -0.01658368  0.09451857 -0.0306368
+   0.03833511  0.14814997  0.03648788  0.27384737 -0.17829376 -0.05323039
+  -0.16450784 -0.11038043  0.11800602 -0.23337364 -0.09426391 -0.10898958
+  -0.18594038  0.16814792 -0.24230467  0.08020875  0.11287072 -0.07557198
+  -0.10679205 -0.2690038   0.08641762 -0.11043404  0.22599766  0.06393981
+  -0.14633091  0.17496619 -0.14844005 -0.16943167 -0.20160058  0.1417045
+  -0.14982559 -0.23274049  0.01494113 -0.09080438  0.14349204 -0.02310786
+  -0.09619236  0.25710955 -0.05327834 -0.1240717  -0.22697313  0.19823658
+   0.07647353  0.16834635]
+ [ 0.06071457 -0.22958834  0.0437988   0.16008243  0.2206552   0.2197591
+   0.25506803  0.03467685 -0.07692197  0.19312876  0.03898364 -0.14610364
+   0.18021092 -0.16858059 -0.04467131  0.03393582 -0.23349552  0.2134111
+   0.14098582  0.22343507 -0.2581991   0.23307917 -0.16905525  0.2068573
+   0.01285726  0.21210513 -0.07328562 -0.20476438  0.18148667 -0.07501474
+  -0.10276279 -0.06462668 -0.25033048  0.04760736 -0.1963843  -0.06922719
+   0.2065216  -0.00956306 -0.04314405 -0.1352808  -0.23693198 -0.02996285
+   0.11442369 -0.19541211 -0.18729085  0.13500404 -0.26926222 -0.25185958
+  -0.19413638  0.25173756  0.08446261 -0.03034526  0.19790038 -0.25203034
+  -0.11715586 -0.08738874 -0.0411853   0.23346993  0.18488228 -0.2006928
+  -0.24271001  0.23463193  0.04376018 -0.15276933  0.09870231  0.24565926
+   0.14604062  0.04535058 -0.24174552  0.24904361 -0.03578444  0.22615269
+  -0.21535455 -0.07401831]
+ [ 0.09016073 -0.23448747  0.10423914  0.00577506 -0.13473125  0.2610403
+   0.20479125  0.05221143  0.23349044  0.02377635 -0.16164714 -0.01260817
+   0.16628009  0.15234867  0.07610235 -0.14433056 -0.10633652  0.2697952
+  -0.09730883  0.08185422 -0.02892792 -0.01996556  0.15704852 -0.16230834
+  -0.17387258  0.18071094  0.0040679   0.13676777 -0.012328   -0.10698529
+   0.19030759  0.13603365  0.07047981  0.06044     0.00606871 -0.20660454
+   0.06590578 -0.18951452 -0.06829615 -0.1528627   0.00247809 -0.08774571
+   0.15125448 -0.2560125  -0.26766372  0.05105388 -0.06901811 -0.12089989
+  -0.11963598  0.1193572   0.07489488 -0.17011368  0.23274985 -0.064642
+  -0.24931058 -0.15560499  0.00748563 -0.16315371  0.064071   -0.04349038
+  -0.09801109 -0.02489197  0.04392767  0.19635183  0.07934999  0.18167722
+  -0.22094865  0.06257609  0.04278392 -0.2266944   0.20054695  0.21374995
+  -0.1531271  -0.1407163 ]]>
+
+List of objects that could not be loaded:
+[<Dense name=input_projection, built=True>]
+2025-12-25 22:38:23,018 - INFO - 
+======================================================================
+2025-12-25 22:38:23,019 - INFO - MODO: SOLO LIMPIEZA
+2025-12-25 22:38:23,019 - INFO - ======================================================================
+2025-12-25 22:38:23,019 - INFO - 
+[CLEANUP] Limpiando archivos antiguos...
+2025-12-25 22:38:23,020 - INFO -    [CLEANUP RAW] Eliminado: banrep__suameca__Inflacion_total__15270__20251225_181457.json
+2025-12-25 22:38:23,021 - INFO -    [CLEANUP RAW] Eliminado: banrep__suameca__Inflacion_total__15270__20251215_021936.json
+2025-12-25 22:38:23,021 - INFO -    [CLEANUP RAW] Eliminado: banrep__suameca__IPP__3__20251225_181457.json
+2025-12-25 22:38:23,021 - INFO -    [CLEANUP RAW] Eliminado: banrep__suameca__PIB_real_trimestral_2015_AE__15152__20251225_181458.json
+2025-12-25 22:38:23,022 - INFO -    [CLEANUP RAW] Eliminado: banrep__suameca__PIB_real_trimestral_2015_AE__15152__20251215_021937.json
+2025-12-25 22:38:23,022 - INFO -    [CLEANUP RAW] Eliminado: banrep__suameca__Tasa_interes_colocacion_total__15125__20251225_181458.json
+2025-12-25 22:38:23,022 - INFO -    [CLEANUP RAW] Eliminado: banrep__suameca__Tasa_interes_colocacion_total__15125__20251215_021937.json
+2025-12-25 22:38:23,023 - INFO -    [CLEANUP RAW] Eliminado: banrep__suameca__TRM__1__20251225_181457.json
+2025-12-25 22:38:23,023 - INFO -    [CLEANUP RAW] Eliminado: banrep__suameca__TRM__1__20251215_021936.json
+2025-12-25 22:38:23,025 - INFO -    [CLEANUP RAW] Eliminado: brent__fred__20251225_205700.csv
+2025-12-25 22:38:23,025 - INFO -    [CLEANUP RAW] Eliminado: fao__food_price_index__20251225_205241.csv
+2025-12-25 22:38:23,027 - INFO -    [CLEANUP] Eliminado: predictions_20251225_212953.csv
+2025-12-25 22:38:23,027 - INFO -    [CLEANUP] Eliminado: predictions_20251225_212405.csv
+2025-12-25 22:38:23,027 - INFO -    [CLEANUP] Eliminado: predictions_20251225_212219.csv
+2025-12-25 22:38:23,028 - INFO -    [CLEANUP] Eliminado: predictions_20251225_212150.csv
+2025-12-25 22:38:23,029 - INFO -    [CLEANUP] Eliminado: predictions_plot_20251225_212405.png
+2025-12-25 22:38:23,029 - INFO -    [CLEANUP] Eliminado: predictions_plot_20251225_212220.png
+2025-12-25 22:38:23,029 - INFO -    [CLEANUP] Eliminado: predictions_plot_20251225_212150.png
+2025-12-25 22:38:23,029 - INFO - [CLEANUP] Total archivos eliminados: 18
+2025-12-25 22:38:23,029 - INFO - 
+Resumen de limpieza: {
+  "raw_data": {
+    "Inflacion_total": [
+      "C:\\Users\\mateo\\Repositorios\\Automated Time-series\\Automated-Time-Series-Forecasting-System\\data\\raw\\banrep\\suameca\\banrep__suameca__Inflacion_total__15270__20251225_181457.json",
+      "C:\\Users\\mateo\\Repositorios\\Automated Time-series\\Automated-Time-Series-Forecasting-System\\data\\raw\\banrep\\suameca\\banrep__suameca__Inflacion_total__15270__20251215_021936.json"
+    ],
+    "IPP": [
+      "C:\\Users\\mateo\\Repositorios\\Automated Time-series\\Automated-Time-Series-Forecasting-System\\data\\raw\\banrep\\suameca\\banrep__suameca__IPP__3__20251225_181457.json"
+    ],
+    "PIB_real_trimestral_2015_AE": [
+      "C:\\Users\\mateo\\Repositorios\\Automated Time-series\\Automated-Time-Series-Forecasting-System\\data\\raw\\banrep\\suameca\\banrep__suameca__PIB_real_trimestral_2015_AE__15152__20251225_181458.json",
+      "C:\\Users\\mateo\\Repositorios\\Automated Time-series\\Automated-Time-Series-Forecasting-System\\data\\raw\\banrep\\suameca\\banrep__suameca__PIB_real_trimestral_2015_AE__15152__20251215_021937.json"
+    ],
+    "Tasa_interes_colocacion_total": [
+      "C:\\Users\\mateo\\Repositorios\\Automated Time-series\\Automated-Time-Series-Forecasting-System\\data\\raw\\banrep\\suameca\\banrep__suameca__Tasa_interes_colocacion_total__15125__20251225_181458.json",
+      "C:\\Users\\mateo\\Repositorios\\Automated Time-series\\Automated-Time-Series-Forecasting-System\\data\\raw\\banrep\\suameca\\banrep__suameca__Tasa_interes_colocacion_total__15125__20251215_021937.json"
+    ],
+    "TRM": [
+      "C:\\Users\\mateo\\Repositorios\\Automated Time-series\\Automated-Time-Series-Forecasting-System\\data\\raw\\banrep\\suameca\\banrep__suameca__TRM__1__20251225_181457.json",
+      "C:\\Users\\mateo\\Repositorios\\Automated Time-series\\Automated-Time-Series-Forecasting-System\\data\\raw\\banrep\\suameca\\banrep__suameca__TRM__1__20251215_021936.json"
+    ],
+    "external": [
+      "C:\\Users\\mateo\\Repositorios\\Automated Time-series\\Automated-Time-Series-Forecasting-System\\data\\raw\\external\\brent__fred__20251225_205700.csv",
+      "C:\\Users\\mateo\\Repositorios\\Automated Time-series\\Automated-Time-Series-Forecasting-System\\data\\raw\\external\\fao__food_price_index__20251225_205241.csv"
+    ]
+  },
+  "processed_data": [],
+  "models": [],
+  "predictions": [
+    "C:\\Users\\mateo\\Repositorios\\Automated Time-series\\Automated-Time-Series-Forecasting-System\\misc\\results\\predictions_20251225_212953.csv",
+    "C:\\Users\\mateo\\Repositorios\\Automated Time-series\\Automated-Time-Series-Forecasting-System\\misc\\results\\predictions_20251225_212405.csv",
+    "C:\\Users\\mateo\\Repositorios\\Automated Time-series\\Automated-Time-Series-Forecasting-System\\misc\\results\\predictions_20251225_212219.csv",
+    "C:\\Users\\mateo\\Repositorios\\Automated Time-series\\Automated-Time-Series-Forecasting-System\\misc\\results\\predictions_20251225_212150.csv",
+    "C:\\Users\\mateo\\Repositorios\\Automated Time-series\\Automated-Time-Series-Forecasting-System\\misc\\results\\predictions_plot_20251225_212405.png",
+    "C:\\Users\\mateo\\Repositorios\\Automated Time-series\\Automated-Time-Series-Forecasting-System\\misc\\results\\predictions_plot_20251225_212220.png",
+    "C:\\Users\\mateo\\Repositorios\\Automated Time-series\\Automated-Time-Series-Forecasting-System\\misc\\results\\predictions_plot_20251225_212150.png"
+  ]
+}
+2025-12-25 23:04:49,811 - INFO - ======================================================================
+2025-12-25 23:04:49,811 - INFO -   ESTADO DEL SISTEMA
+2025-12-25 23:04:49,813 - INFO - ======================================================================
+2025-12-25 23:04:49,813 - INFO - Última descarga:    2025-12-25T21:23:07.449549
+2025-12-25 23:04:49,813 - INFO - Última predicción:  2025-12-25T21:45:08.533972
+2025-12-25 23:04:49,813 - INFO - Último fine-tuning: 2025-12-25T21:21:49.533732
+2025-12-25 23:04:49,813 - INFO - Modelo activo:      tft_finetuned_202512_v1.keras
+2025-12-25 23:04:49,813 - INFO - Fine-tunings:       1
+2025-12-25 23:04:49,824 - INFO - 
+Datos disponibles:
+2025-12-25 23:04:49,824 - INFO -   Filas: 251
+2025-12-25 23:04:49,825 - INFO -   Rango: 2005-01-01 00:00:00 → 2025-11-01 00:00:00
+2025-12-25 23:04:49,825 - INFO -   Features: ['Inflacion_total', 'IPP', 'PIB_real_trimestral_2015_AE', 'Tasa_interes_colocacion_total', 'TRM', 'Brent', 'FAO']
+2025-12-25 23:09:38,053 - INFO - ======================================================================
+2025-12-25 23:09:38,053 - INFO -   ESTADO DEL SISTEMA
+2025-12-25 23:09:38,054 - INFO - ======================================================================
+2025-12-25 23:09:38,054 - INFO - Última descarga:    2025-12-25T21:23:07.449549
+2025-12-25 23:09:38,054 - INFO - Última predicción:  2025-12-25T21:45:08.533972
+2025-12-25 23:09:38,054 - INFO - Último fine-tuning: 2025-12-25T21:21:49.533732
+2025-12-25 23:09:38,054 - INFO - Modelo activo:      tft_finetuned_202512_v1.keras
+2025-12-25 23:09:38,055 - INFO - Fine-tunings:       1
+2025-12-25 23:09:38,064 - INFO - 
+Datos disponibles:
+2025-12-25 23:09:38,064 - INFO -   Filas: 251
+2025-12-25 23:09:38,064 - INFO -   Rango: 2005-01-01 00:00:00 → 2025-11-01 00:00:00
+2025-12-25 23:09:38,065 - INFO -   Features: ['Inflacion_total', 'IPP', 'PIB_real_trimestral_2015_AE', 'Tasa_interes_colocacion_total', 'TRM', 'Brent', 'FAO']
