@@ -125,18 +125,39 @@ class TFTModel:
 
     @staticmethod
     def load_latest_proc_csv(proc_dir: str | Path = "data/proc") -> pd.DataFrame:
-        """Carga el CSV más reciente dentro de `data/proc`."""
+        """Carga el CSV "más reciente" dentro de `data/proc`.
+
+        Nota: En entornos como Streamlit Cloud / despliegues vía git, los tiempos
+        de modificación (mtime) pueden no reflejar cuál CSV contiene la data más
+        actual. Por eso, elegimos el CSV cuyo `date.max()` sea mayor.
+        """
         proc_path = Path(proc_dir)
         if not proc_path.exists():
             raise FileNotFoundError(f"No existe el directorio: {proc_path.resolve()}")
 
-        csvs = sorted(proc_path.glob("*.csv"), key=lambda p: p.stat().st_mtime, reverse=True)
+        csvs = sorted(proc_path.glob("*.csv"))
         if not csvs:
             raise FileNotFoundError(f"No hay CSVs en: {proc_path.resolve()}")
 
-        df = pd.read_csv(csvs[0], parse_dates=["date"])
-        df = df.sort_values("date").reset_index(drop=True)
-        return df
+        best_df: Optional[pd.DataFrame] = None
+        best_end: Optional[pd.Timestamp] = None
+        best_path: Optional[Path] = None
+
+        for p in csvs:
+            df = pd.read_csv(p, parse_dates=["date"])
+            if "date" not in df.columns or df.empty:
+                continue
+            df = df.sort_values("date").reset_index(drop=True)
+            end = pd.to_datetime(df["date"]).max()
+            if best_end is None or end > best_end:
+                best_end = end
+                best_df = df
+                best_path = p
+
+        if best_df is None:
+            raise FileNotFoundError(f"No se pudo seleccionar un CSV válido en: {proc_path.resolve()}")
+
+        return best_df
 
     @staticmethod
     def make_supervised_windows(
