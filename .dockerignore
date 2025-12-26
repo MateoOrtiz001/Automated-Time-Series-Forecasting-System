@@ -1,0 +1,52 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info
+.eggs
+*.egg
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Data (se monta como volumen)
+data/raw/
+data/proc/
+
+# Logs y resultados (se montan como volumen)
+misc/logs/
+misc/results/
+results/
+
+# Archivos temporales
+*.log
+*.tmp
+*.temp
+
+# Tests
+test*.py
+check_dates.py
+
+# Notebooks
+*.ipynb
+.ipynb_checkpoints/
+
+# Otros
+*.md
+LICENSE
+.env
+.env.*

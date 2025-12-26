@@ -1,0 +1,44 @@
+{
+  "last_download": "2025-12-25T21:23:07.449549",
+  "last_prediction": "2025-12-25T21:45:08.533972",
+  "last_finetune": "2025-12-25T21:21:49.533732",
+  "finetune_count": 1,
+  "current_model": "tft_finetuned_202512_v1.keras",
+  "execution_history": [
+    {
+      "timestamp": "2025-12-25T21:21:50.866046",
+      "type": "prediction",
+      "model": "tft_finetuned_202512_v1.keras",
+      "csv_path": "C:\\Users\\mateo\\Repositorios\\Automated Time-series\\Automated-Time-Series-Forecasting-System\\misc\\results\\predictions_20251225_212150.csv",
+      "plot_path": "C:\\Users\\mateo\\Repositorios\\Automated Time-series\\Automated-Time-Series-Forecasting-System\\misc\\results\\predictions_plot_20251225_212150.png"
+    },
+    {
+      "timestamp": "2025-12-25T21:22:20.358864",
+      "type": "prediction",
+      "model": "tft_finetuned_202512_v1.keras",
+      "csv_path": "C:\\Users\\mateo\\Repositorios\\Automated Time-series\\Automated-Time-Series-Forecasting-System\\misc\\results\\predictions_20251225_212219.csv",
+      "plot_path": "C:\\Users\\mateo\\Repositorios\\Automated Time-series\\Automated-Time-Series-Forecasting-System\\misc\\results\\predictions_plot_20251225_212220.png"
+    },
+    {
+      "timestamp": "2025-12-25T21:24:06.161225",
+      "type": "prediction",
+      "model": "tft_finetuned_202512_v1.keras",
+      "csv_path": "C:\\Users\\mateo\\Repositorios\\Automated Time-series\\Automated-Time-Series-Forecasting-System\\misc\\results\\predictions_20251225_212405.csv",
+      "plot_path": "C:\\Users\\mateo\\Repositorios\\Automated Time-series\\Automated-Time-Series-Forecasting-System\\misc\\results\\predictions_plot_20251225_212405.png"
+    },
+    {
+      "timestamp": "2025-12-25T21:29:54.183917",
+      "type": "prediction",
+      "model": "tft_finetuned_202512_v1.keras",
+      "csv_path": "C:\\Users\\mateo\\Repositorios\\Automated Time-series\\Automated-Time-Series-Forecasting-System\\misc\\results\\predictions_20251225_212953.csv",
+      "plot_path": "C:\\Users\\mateo\\Repositorios\\Automated Time-series\\Automated-Time-Series-Forecasting-System\\misc\\results\\predictions_plot_20251225_212953.png"
+    },
+    {
+      "timestamp": "2025-12-25T21:45:08.534968",
+      "type": "prediction",
+      "model": "tft_finetuned_202512_v1.keras",
+      "csv_path": "C:\\Users\\mateo\\Repositorios\\Automated Time-series\\Automated-Time-Series-Forecasting-System\\misc\\results\\predictions_20251225_214508.csv",
+      "plot_path": "C:\\Users\\mateo\\Repositorios\\Automated Time-series\\Automated-Time-Series-Forecasting-System\\misc\\results\\predictions_plot_20251225_214508.png"
+    }
+  ]
+}

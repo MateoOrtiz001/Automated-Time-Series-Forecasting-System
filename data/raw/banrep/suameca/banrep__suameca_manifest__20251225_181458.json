@@ -1,0 +1,51 @@
+{
+  "source": "banrep_suameca_post",
+  "endpoint": "https://suameca.banrep.gov.co/buscador-de-series/rest/buscadorSeriesRestService/consultaDatosSeries",
+  "output_dir": "data\\raw\\banrep\\suameca",
+  "run_at": "2025-12-25T18:14:56",
+  "start_period": null,
+  "end_period": null,
+  "series": {
+    "Inflacion_total": {
+      "id": 15270,
+      "status": "ok_json",
+      "file_path": "data\\raw\\banrep\\suameca\\banrep__suameca__Inflacion_total__15270__20251225_181457.json",
+      "http_status": 200,
+      "content_type": "application/json",
+      "error": null
+    },
+    "IPP": {
+      "id": 3,
+      "status": "ok_json",
+      "file_path": "data\\raw\\banrep\\suameca\\banrep__suameca__IPP__3__20251225_181457.json",
+      "http_status": 200,
+      "content_type": "application/json",
+      "error": null
+    },
+    "TRM": {
+      "id": 1,
+      "status": "ok_json",
+      "file_path": "data\\raw\\banrep\\suameca\\banrep__suameca__TRM__1__20251225_181457.json",
+      "http_status": 200,
+      "content_type": "application/json",
+      "error": null
+    },
+    "Tasa_interes_colocacion_total": {
+      "id": 15125,
+      "status": "ok_json",
+      "file_path": "data\\raw\\banrep\\suameca\\banrep__suameca__Tasa_interes_colocacion_total__15125__20251225_181458.json",
+      "http_status": 200,
+      "content_type": "application/json",
+      "error": null
+    },
+    "PIB_real_trimestral_2015_AE": {
+      "id": 15152,
+      "status": "ok_json",
+      "file_path": "data\\raw\\banrep\\suameca\\banrep__suameca__PIB_real_trimestral_2015_AE__15152__20251225_181458.json",
+      "http_status": 200,
+      "content_type": "application/json",
+      "error": null
+    }
+  },
+  "template_json_path": null
+}

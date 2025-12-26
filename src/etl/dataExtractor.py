@@ -498,6 +498,313 @@ SUAMECA_CONSULTA_DATOS_SERIES_URL = (
     "buscadorSeriesRestService/consultaDatosSeries"
 )
 
+# ============================================================================
+# FAO Food Price Index
+# ============================================================================
+FAO_INDICES_CSV_URL = (
+    "https://www.fao.org/media/docs/worldfoodsituationlibraries/"
+    "default-document-library/food_price_indices_data_csv_dec.csv?sfvrsn=523ebd2a_64&download=true"
+)
+FAO_INDICES_XLSX_URL = (
+    "https://www.fao.org/media/docs/worldfoodsituationlibraries/"
+    "default-document-library/food_price_indices_data_dec.xlsx?sfvrsn=63809b16_94"
+)
+
+
+def _default_external_dir() -> Path:
+    return _repo_root() / "data" / "raw" / "external"
+
+
+def extraer_fao_indices(
+    *,
+    output_dir: str | Path | None = None,
+    format: str = "csv",
+    http_timeout_s: int = 180,
+    verbose: bool = False,
+) -> dict[str, Any]:
+    """Descarga los índices de precios de alimentos de la FAO (nominales y reales mensuales).
+
+    Args:
+        output_dir: Directorio de salida (por defecto: data/raw/external)
+        format: 'csv' o 'xlsx'
+        http_timeout_s: Timeout HTTP en segundos
+        verbose: Imprimir mensajes de progreso
+
+    Returns:
+        Diccionario con información del resultado de la descarga
+    """
+    out_dir = Path(output_dir) if output_dir else _default_external_dir()
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    url = FAO_INDICES_CSV_URL if format == "csv" else FAO_INDICES_XLSX_URL
+    ext = ".csv" if format == "csv" else ".xlsx"
+
+    resultados: dict[str, Any] = {
+        "source": "fao_food_price_index",
+        "url": url,
+        "output_dir": str(out_dir),
+        "run_at": datetime.now().isoformat(timespec="seconds"),
+        "format": format,
+    }
+
+    session = requests.Session()
+    session.headers.update(
+        {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+            "Accept": "*/*",
+        }
+    )
+
+    try:
+        if verbose:
+            print(f"[fao] Descargando índices de precios ({format})...")
+
+        resp = session.get(url, timeout=http_timeout_s)
+        if resp.status_code != 200:
+            resultados["status"] = "http_error"
+            resultados["http_status"] = resp.status_code
+            resultados["error"] = resp.text[:2000]
+            return resultados
+
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+        dest_name = f"fao__food_price_index__{ts}{ext}"
+        dest = _unique_path(out_dir / dest_name)
+        dest.write_bytes(resp.content)
+
+        # También guardar una copia con nombre fijo para fácil referencia
+        fixed_name = out_dir / f"fao{ext}"
+        fixed_name.write_bytes(resp.content)
+
+        resultados["status"] = "ok"
+        resultados["file_path"] = str(dest)
+        resultados["fixed_path"] = str(fixed_name)
+        resultados["http_status"] = resp.status_code
+        resultados["size_bytes"] = len(resp.content)
+
+        if verbose:
+            print(f"[fao] Guardado en: {dest}")
+
+    except Exception as e:
+        resultados["status"] = "error"
+        resultados["error"] = str(e)
+
+    return resultados
+
+
+# ============================================================================
+# Brent Oil Price (Yahoo Finance - rápido, sin Selenium)
+# ============================================================================
+YAHOO_BRENT_SYMBOL = "BZ=F"  # Brent Crude Oil Futures
+YAHOO_DOWNLOAD_URL = "https://query1.finance.yahoo.com/v7/finance/download/{symbol}"
+
+
+def extraer_brent_yahoo(
+    *,
+    output_dir: str | Path | None = None,
+    start_date: str | None = None,
+    end_date: str | None = None,
+    interval: str = "1mo",
+    http_timeout_s: int = 60,
+    verbose: bool = False,
+) -> dict[str, Any]:
+    """Descarga precios históricos del Brent desde Yahoo Finance (rápido, sin Selenium).
+
+    Args:
+        output_dir: Directorio de salida (por defecto: data/raw/external)
+        start_date: Fecha inicio (YYYY-MM-DD). Por defecto: 1990-01-01
+        end_date: Fecha fin (YYYY-MM-DD). Por defecto: hoy
+        interval: Intervalo de datos: '1d' (diario), '1wk' (semanal), '1mo' (mensual)
+        http_timeout_s: Timeout HTTP
+        verbose: Imprimir mensajes
+
+    Returns:
+        Diccionario con resultado de la extracción
+    """
+    out_dir = Path(output_dir) if output_dir else _default_external_dir()
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    # Convertir fechas a timestamps Unix
+    from datetime import timezone
+
+    if start_date:
+        try:
+            dt_start = datetime.strptime(start_date, "%Y-%m-%d")
+        except ValueError:
+            dt_start = datetime(1990, 1, 1)
+    else:
+        dt_start = datetime(1990, 1, 1)
+
+    if end_date:
+        try:
+            dt_end = datetime.strptime(end_date, "%Y-%m-%d")
+        except ValueError:
+            dt_end = datetime.now()
+    else:
+        dt_end = datetime.now()
+
+    period1 = int(dt_start.replace(tzinfo=timezone.utc).timestamp())
+    period2 = int(dt_end.replace(tzinfo=timezone.utc).timestamp())
+
+    url = YAHOO_DOWNLOAD_URL.format(symbol=YAHOO_BRENT_SYMBOL)
+    params = {
+        "period1": period1,
+        "period2": period2,
+        "interval": interval,
+        "events": "history",
+        "includeAdjustedClose": "true",
+    }
+
+    resultados: dict[str, Any] = {
+        "source": "yahoo_finance_brent",
+        "symbol": YAHOO_BRENT_SYMBOL,
+        "url": url,
+        "output_dir": str(out_dir),
+        "run_at": datetime.now().isoformat(timespec="seconds"),
+        "start_date": start_date or "1990-01-01",
+        "end_date": end_date or datetime.now().strftime("%Y-%m-%d"),
+        "interval": interval,
+    }
+
+    session = requests.Session()
+    session.headers.update(
+        {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+            "Accept": "text/csv,application/csv,*/*",
+        }
+    )
+
+    try:
+        if verbose:
+            print(f"[brent] Descargando desde Yahoo Finance ({interval})...")
+
+        resp = session.get(url, params=params, timeout=http_timeout_s)
+
+        if resp.status_code != 200:
+            resultados["status"] = "http_error"
+            resultados["http_status"] = resp.status_code
+            resultados["error"] = resp.text[:2000]
+            return resultados
+
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+        dest_name = f"brent__yahoo__{interval}__{ts}.csv"
+        dest = _unique_path(out_dir / dest_name)
+        dest.write_bytes(resp.content)
+
+        # Copia con nombre fijo
+        fixed_path = out_dir / "brent.csv"
+        fixed_path.write_bytes(resp.content)
+
+        resultados["status"] = "ok"
+        resultados["file_path"] = str(dest)
+        resultados["fixed_path"] = str(fixed_path)
+        resultados["http_status"] = resp.status_code
+        resultados["size_bytes"] = len(resp.content)
+
+        # Contar filas
+        lines = resp.content.decode("utf-8", errors="ignore").strip().split("\n")
+        resultados["rows"] = len(lines) - 1  # menos header
+
+        if verbose:
+            print(f"[brent] Guardado en: {dest} ({resultados['rows']} filas)")
+
+    except Exception as e:
+        resultados["status"] = "error"
+        resultados["error"] = str(e)
+
+    return resultados
+
+
+# Alternativa: FRED (Federal Reserve Economic Data) - datos mensuales oficiales
+FRED_BRENT_URL = "https://fred.stlouisfed.org/graph/fredgraph.csv"
+FRED_BRENT_SERIES = "DCOILBRENTEU"  # Brent Crude Oil Price
+
+
+def extraer_brent_fred(
+    *,
+    output_dir: str | Path | None = None,
+    start_date: str | None = None,
+    end_date: str | None = None,
+    http_timeout_s: int = 60,
+    verbose: bool = False,
+) -> dict[str, Any]:
+    """Descarga precios del Brent desde FRED (Federal Reserve Economic Data).
+
+    Fuente oficial con datos diarios desde 1987.
+
+    Args:
+        output_dir: Directorio de salida
+        start_date: Fecha inicio (YYYY-MM-DD)
+        end_date: Fecha fin (YYYY-MM-DD)
+        http_timeout_s: Timeout HTTP
+        verbose: Imprimir mensajes
+
+    Returns:
+        Diccionario con resultado
+    """
+    out_dir = Path(output_dir) if output_dir else _default_external_dir()
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    params = {"id": FRED_BRENT_SERIES}
+    if start_date:
+        params["cosd"] = start_date
+    if end_date:
+        params["coed"] = end_date
+
+    resultados: dict[str, Any] = {
+        "source": "fred_brent",
+        "series": FRED_BRENT_SERIES,
+        "url": FRED_BRENT_URL,
+        "output_dir": str(out_dir),
+        "run_at": datetime.now().isoformat(timespec="seconds"),
+        "start_date": start_date,
+        "end_date": end_date,
+    }
+
+    session = requests.Session()
+    session.headers.update(
+        {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        }
+    )
+
+    try:
+        if verbose:
+            print("[brent] Descargando desde FRED...")
+
+        resp = session.get(FRED_BRENT_URL, params=params, timeout=http_timeout_s)
+
+        if resp.status_code != 200:
+            resultados["status"] = "http_error"
+            resultados["http_status"] = resp.status_code
+            resultados["error"] = resp.text[:2000]
+            return resultados
+
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+        dest_name = f"brent__fred__{ts}.csv"
+        dest = _unique_path(out_dir / dest_name)
+        dest.write_bytes(resp.content)
+
+        fixed_path = out_dir / "brent.csv"
+        fixed_path.write_bytes(resp.content)
+
+        resultados["status"] = "ok"
+        resultados["file_path"] = str(dest)
+        resultados["fixed_path"] = str(fixed_path)
+        resultados["http_status"] = resp.status_code
+        resultados["size_bytes"] = len(resp.content)
+
+        lines = resp.content.decode("utf-8", errors="ignore").strip().split("\n")
+        resultados["rows"] = len(lines) - 1
+
+        if verbose:
+            print(f"[brent] Guardado en: {dest} ({resultados['rows']} filas)")
+
+    except Exception as e:
+        resultados["status"] = "error"
+        resultados["error"] = str(e)
+
+    return resultados
+
 
 SUAMECA_DEFAULT_SERIES: dict[str, dict[str, Any]] = {
     "Inflacion_total": {
@@ -506,23 +813,23 @@ SUAMECA_DEFAULT_SERIES: dict[str, dict[str, Any]] = {
         "fechaFin": 20251130,
         "idPeriodicidades": [9],
     },
-    "Balance_fiscal_gobierno_nacional": {
-        "idSerie": 16723,
-        "fechaInicio": 20040131,
-        "fechaFin": 20250831,
-        "idPeriodicidades": [9, 12, 18],
+    # IPP (Índice de Precios del Productor)
+    # Según JSON provisto por el usuario:
+    # - fechaInicio: 19900630
+    # - fechaFin: 20251130
+    # - series[0].idSerie: 3
+    # - series[0].idPeriodicidades: [9]
+    "IPP": {
+        "idSerie": 3,
+        "fechaInicio": 19900630,
+        "fechaFin": 20251130,
+        "idPeriodicidades": [9],
     },
     "TRM": {
         "idSerie": 1,
         "fechaInicio": 19911127,
         "fechaFin": 20251215,
         "idPeriodicidades": [9, 22],
-    },
-    "Tasa_desempleo": {
-        "idSerie": 15312,
-        "fechaInicio": 20010131,
-        "fechaFin": 20251031,
-        "idPeriodicidades": [9],
     },
     "Tasa_interes_colocacion_total": {
         "idSerie": 15125,
@@ -756,9 +1063,14 @@ def consolidar_suameca_json_a_csv_mensual(
     input_dir: str | Path | None = None,
     output_csv_path: str | Path | None = None,
     proc_dir: str | Path | None = None,
+    include_all_series: bool = False,
+    allowed_series_keys: list[str] | None = None,
+    external_dir: str | Path | None = None,
+    brent_csv: str | Path | None = None,
+    fao_csv: str | Path | None = None,
     periodicity_priority: tuple[int, ...] = (22, 9, 12, 18),
     align_start: str = "max",
-    align_end: str = "min",
+    align_end: str = "max",
     fill_missing_months: bool = True,
     verbose: bool = False,
 ) -> dict[str, Any]:
@@ -786,6 +1098,29 @@ def consolidar_suameca_json_a_csv_mensual(
     if not json_paths:
         raise FileNotFoundError(f"No se encontraron JSON suameca en: {in_dir}")
 
+    # Por defecto, "limpiamos" el dataset usando SOLO las series definidas en SUAMECA_DEFAULT_SERIES
+    # (evita que queden columnas antiguas aunque existan JSON viejos en data/raw).
+    allowed_set: set[str] | None = None
+    if not include_all_series:
+        allowed_set = set(allowed_series_keys or list(SUAMECA_DEFAULT_SERIES.keys()))
+        filtered = []
+        for p in json_paths:
+            try:
+                k = p.stem.split("__")[2] if "__" in p.stem else p.stem
+            except Exception:
+                k = p.stem
+            if k in allowed_set:
+                filtered.append(p)
+            else:
+                if verbose:
+                    print(f"[to_csv] ignorando serie (no permitida): {p.name}")
+        json_paths = filtered
+        if not json_paths:
+            raise FileNotFoundError(
+                "No quedaron JSON suameca tras filtrar por allowed_series_keys. "
+                "Descarga las series actuales con --method suameca o usa --include-all-series."
+            )
+
     def _parse_series_key_from_filename(path: Path) -> str:
         stem = path.stem
         parts = stem.split("__")
@@ -793,6 +1128,116 @@ def consolidar_suameca_json_a_csv_mensual(
         if len(parts) >= 4 and parts[0] == "banrep" and parts[1] == "suameca":
             return parts[2]
         return _safe_filename(stem)
+
+    def _merge_external_csv_monthly(
+        base_df: "pd.DataFrame",
+        csv_path: Path,
+        out_col: str,
+    ) -> "pd.DataFrame":
+        """Mergea una serie externa desde CSV (fecha + valor) a frecuencia mensual.
+
+        CSV esperado (flexible):
+        - Columna de fecha: date|fecha|Date|observation_date
+        - Columna de valor: value|valor|price|indice|index|Food Price Index|DCOILBRENTEU
+        
+        Maneja formatos especiales:
+        - FAO: tiene filas de encabezado extra (se saltan automáticamente)
+        - FRED: usa observation_date y nombre de serie como columna
+        """
+        if not csv_path.exists():
+            if verbose:
+                print(f"[to_csv] external: no existe {csv_path}")
+            return base_df
+
+        # Intentar detectar filas de encabezado (FAO tiene 2-3 filas de metadatos)
+        skiprows = 0
+        try:
+            # Leer primeras líneas para detectar formato
+            with open(csv_path, "r", encoding="utf-8", errors="ignore") as f:
+                for i, line in enumerate(f):
+                    # Si la línea empieza con una fecha válida (año), es el inicio de datos
+                    parts = line.strip().split(",")
+                    if parts and len(parts[0]) >= 7:
+                        # Verificar si parece una fecha (YYYY-MM o similar)
+                        first = parts[0].strip()
+                        if first[:4].isdigit() and "-" in first:
+                            break
+                        # Si es "Date" o similar, es el header real
+                        if first.lower() in ("date", "fecha", "observation_date"):
+                            break
+                    skiprows = i + 1
+                    if skiprows > 10:  # máximo 10 filas de metadatos
+                        skiprows = 0
+                        break
+        except Exception:
+            skiprows = 0
+
+        try:
+            ext = pd.read_csv(csv_path, skiprows=skiprows if skiprows > 0 else None)
+        except Exception as e:
+            if verbose:
+                print(f"[to_csv] external: error leyendo {csv_path.name}: {e}")
+            return base_df
+
+        if ext.empty:
+            if verbose:
+                print(f"[to_csv] external: vacío {csv_path}")
+            return base_df
+
+        # Buscar columna de fecha (más flexible)
+        date_candidates = [
+            c for c in ext.columns 
+            if str(c).lower() in ("date", "fecha", "observation_date") 
+            or str(c).lower().startswith("date")
+        ]
+        
+        # Buscar columna de valor (más flexible para FAO y FRED)
+        val_candidates = [
+            c for c in ext.columns 
+            if str(c).lower() in ("value", "valor", "price", "indice", "index", "food price index", "dcoilbrenteu")
+            or "price" in str(c).lower()
+            or "index" in str(c).lower()
+        ]
+        
+        # Si no encontramos por nombre, intentar la segunda columna (típico en FRED)
+        if not val_candidates and len(ext.columns) >= 2:
+            # Asumimos primera columna = fecha, segunda = valor
+            val_candidates = [ext.columns[1]]
+        
+        if not date_candidates:
+            # Intentar primera columna como fecha
+            date_candidates = [ext.columns[0]]
+        
+        if not date_candidates or not val_candidates:
+            if verbose:
+                print(f"[to_csv] external: columnas inválidas en {csv_path.name}. columns={list(ext.columns)}")
+            return base_df
+
+        date_col = date_candidates[0]
+        val_col = val_candidates[0]
+
+        ext = ext[[date_col, val_col]].copy()
+        
+        # Convertir valor a numérico (manejar puntos de FRED que indican "sin dato")
+        ext[val_col] = pd.to_numeric(ext[val_col], errors="coerce")
+        
+        ext[date_col] = pd.to_datetime(ext[date_col], errors="coerce")
+        ext = ext.dropna(subset=[date_col])
+        if ext.empty:
+            return base_df
+
+        # Normalizar a mensual: tomar último valor del mes
+        ext["_period"] = ext[date_col].dt.to_period("M")
+        ext = ext.sort_values(date_col)
+        ext = ext.groupby("_period")[val_col].last().to_frame(name=out_col)
+        ext.index = ext.index.to_timestamp(how="start")
+        ext.index.name = "date"
+
+        # Reindex a base y ffill
+        merged = base_df.merge(ext, how="left", left_index=True, right_index=True)
+        if fill_missing_months:
+            merged[out_col] = merged[out_col].ffill()
+        return merged
 
     def _choose_best_record(records: list[dict[str, Any]]) -> dict[str, Any] | None:
         with_data = [r for r in records if isinstance(r, dict) and r.get("data")]
@@ -936,6 +1381,20 @@ def consolidar_suameca_json_a_csv_mensual(
     df.index = df.index.to_timestamp(how="start")
     df.index.name = "date"
 
+    # Merge opcional de series externas (Brent/FAO)
+    # Nota: NO crea columnas de placeholders si no hay archivos, para evitar que
+    # el resto del pipeline haga dropna() y se quede sin filas.
+    if external_dir or brent_csv or fao_csv:
+        ext_dir = Path(external_dir) if external_dir else (_repo_root() / "data" / "raw" / "external")
+        if brent_csv:
+            df = _merge_external_csv_monthly(df, Path(brent_csv), "Brent")
+        else:
+            df = _merge_external_csv_monthly(df, ext_dir / "brent.csv", "Brent")
+        if fao_csv:
+            df = _merge_external_csv_monthly(df, Path(fao_csv), "FAO")
+        else:
+            df = _merge_external_csv_monthly(df, ext_dir / "fao.csv", "FAO")
+
     # Determinar path de salida
     proc_dir_path = Path(proc_dir) if proc_dir else _default_proc_dir()
     proc_dir_path.mkdir(parents=True, exist_ok=True)
@@ -967,8 +1426,13 @@ def consolidar_suameca_json_a_csv_mensual(
 def main():
     """CLI no-interactiva (apta para correr en scheduler)."""
 
-    parser = argparse.ArgumentParser(description="Extractor de series (Banrep) hacia data/raw")
-    parser.add_argument("--method", choices=["selenium", "requests", "suameca", "suameca_to_csv"], default="requests")
+    parser = argparse.ArgumentParser(description="Extractor de series (Banrep, FAO, Brent) hacia data/raw")
+    parser.add_argument(
+        "--method",
+        choices=["selenium", "requests", "suameca", "suameca_to_csv", "fao", "brent", "external_all"],
+        default="requests",
+        help="Método de extracción: selenium (Banrep web), requests (SDMX), suameca, suameca_to_csv, fao, brent, external_all (FAO+Brent)",
+    )
     parser.add_argument("--headless", action="store_true", default=False)
     parser.add_argument("--output-dir", default=str(_default_raw_dir()))
     parser.add_argument("--timeout", type=int, default=30)
@@ -985,6 +1449,55 @@ def main():
         "--output-csv",
         default=None,
         help="Nombre o ruta del CSV consolidado (por defecto se genera en data/proc)",
+    )
+    parser.add_argument(
+        "--include-all-series",
+        action="store_true",
+        default=False,
+        help="Si se activa, consolida TODAS las series encontradas en data/raw/banrep/suameca (sin filtrar).",
+    )
+    parser.add_argument(
+        "--external-dir",
+        default=None,
+        help="Directorio con series externas (por defecto: data/raw/external).",
+    )
+    parser.add_argument(
+        "--brent-csv",
+        default=None,
+        help="Ruta a CSV externo para Brent (si no se indica, busca external-dir/brent.csv).",
+    )
+    parser.add_argument(
+        "--fao-csv",
+        default=None,
+        help="Ruta a CSV externo para índice FAO (si no se indica, busca external-dir/fao.csv).",
+    )
+    parser.add_argument(
+        "--fao-format",
+        choices=["csv", "xlsx"],
+        default="csv",
+        help="Formato de descarga FAO (csv o xlsx).",
+    )
+    parser.add_argument(
+        "--brent-start-date",
+        default=None,
+        help="Fecha inicio para Brent (formato YYYY-MM-DD).",
+    )
+    parser.add_argument(
+        "--brent-end-date",
+        default=None,
+        help="Fecha fin para Brent (formato YYYY-MM-DD).",
+    )
+    parser.add_argument(
+        "--brent-source",
+        choices=["yahoo", "fred"],
+        default="fred",
+        help="Fuente de datos Brent: yahoo (Yahoo Finance) o fred (Federal Reserve, recomendado).",
+    )
+    parser.add_argument(
+        "--brent-interval",
+        choices=["1d", "1wk", "1mo"],
+        default="1mo",
+        help="Intervalo de datos Brent para Yahoo: 1d (diario), 1wk (semanal), 1mo (mensual).",
     )
     args = parser.parse_args()
 
@@ -1019,9 +1532,86 @@ def main():
             input_dir=args.output_dir,
             proc_dir=args.proc_dir,
             output_csv_path=args.output_csv,
+            include_all_series=args.include_all_series,
+            external_dir=args.external_dir,
+            brent_csv=args.brent_csv,
+            fao_csv=args.fao_csv,
             verbose=args.verbose,
         )
         print(json.dumps(resultados, ensure_ascii=False, indent=2))
+        return
+
+    if args.method == "fao":
+        ext_dir = args.external_dir or str(_default_external_dir())
+        resultados = extraer_fao_indices(
+            output_dir=ext_dir,
+            format=args.fao_format,
+            http_timeout_s=args.http_timeout,
+            verbose=args.verbose,
+        )
+        print(json.dumps(resultados, ensure_ascii=False, indent=2))
+        return
+
+    if args.method == "brent":
+        ext_dir = args.external_dir or str(_default_external_dir())
+        if args.brent_source == "fred":
+            resultados = extraer_brent_fred(
+                output_dir=ext_dir,
+                start_date=args.brent_start_date,
+                end_date=args.brent_end_date,
+                http_timeout_s=args.http_timeout,
+                verbose=args.verbose,
+            )
+        else:  # yahoo (default)
+            resultados = extraer_brent_yahoo(
+                output_dir=ext_dir,
+                start_date=args.brent_start_date,
+                end_date=args.brent_end_date,
+                interval=args.brent_interval,
+                http_timeout_s=args.http_timeout,
+                verbose=args.verbose,
+            )
+        print(json.dumps(resultados, ensure_ascii=False, indent=2))
+        return
+
+    if args.method == "external_all":
+        # Descarga FAO y Brent en una sola ejecución
+        ext_dir = args.external_dir or str(_default_external_dir())
+        all_results: dict[str, Any] = {
+            "run_at": datetime.now().isoformat(timespec="seconds"),
+            "output_dir": ext_dir,
+        }
+
+        print("[external_all] Descargando FAO Food Price Index...")
+        fao_result = extraer_fao_indices(
+            output_dir=ext_dir,
+            format=args.fao_format,
+            http_timeout_s=args.http_timeout,
+            verbose=args.verbose,
+        )
+        all_results["fao"] = fao_result
+
+        print("[external_all] Descargando Brent Oil...")
+        if args.brent_source == "fred":
+            brent_result = extraer_brent_fred(
+                output_dir=ext_dir,
+                start_date=args.brent_start_date,
+                end_date=args.brent_end_date,
+                http_timeout_s=args.http_timeout,
+                verbose=args.verbose,
+            )
+        else:
+            brent_result = extraer_brent_yahoo(
+                output_dir=ext_dir,
+                start_date=args.brent_start_date,
+                end_date=args.brent_end_date,
+                interval=args.brent_interval,
+                http_timeout_s=args.http_timeout,
+                verbose=args.verbose,
+            )
+        all_results["brent"] = brent_result
+
+        print(json.dumps(all_results, ensure_ascii=False, indent=2))
         return
 
     extractor = BanrepDataExtractor(headless=args.headless, output_dir=args.output_dir, timeout_s=args.timeout)

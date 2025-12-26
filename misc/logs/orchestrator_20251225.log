@@ -1,0 +1,77 @@
+2025-12-25 21:33:39 | INFO     | ======================================================================
+2025-12-25 21:33:39 | INFO     |   ESTADO DEL SISTEMA
+2025-12-25 21:33:39 | INFO     | ======================================================================
+2025-12-25 21:33:39 | INFO     | Última descarga:    None
+2025-12-25 21:33:39 | INFO     | Último entrenamiento: None
+2025-12-25 21:33:39 | INFO     | Última predicción:  None
+2025-12-25 21:33:39 | INFO     | Último fine-tuning: None
+2025-12-25 21:33:39 | INFO     | Modelo activo:      tft_base.keras
+2025-12-25 21:33:39 | INFO     | Total predicciones: 0
+2025-12-25 21:33:39 | INFO     | Total descargas:    0
+2025-12-25 21:33:39 | INFO     | 
+Datos disponibles:
+2025-12-25 21:33:39 | INFO     |   Filas: 251
+2025-12-25 21:33:39 | INFO     |   Rango: 2005-01-01 00:00:00 → 2025-11-01 00:00:00
+2025-12-25 21:33:39 | INFO     |   Columnas: ['date', 'Inflacion_total', 'IPP', 'PIB_real_trimestral_2015_AE', 'Tasa_interes_colocacion_total', 'TRM', 'Brent', 'FAO']
+2025-12-25 21:33:53 | INFO     | ======================================================================
+2025-12-25 21:33:53 | INFO     |   PREDICCIÓN
+2025-12-25 21:33:53 | INFO     | ======================================================================
+2025-12-25 21:33:53 | INFO     | Cargando modelo: tft_base.keras
+2025-12-25 21:33:54 | WARNING  | From C:\Users\mateo\anaconda3\Lib\site-packages\keras\src\backend\tensorflow\core.py:216: The name tf.placeholder is deprecated. Please use tf.compat.v1.placeholder instead.
+
+2025-12-25 21:33:55 | INFO     | Prediciendo 12 meses...
+2025-12-25 21:33:57 | INFO     | ✓ Predicciones guardadas: predictions_20251225_213357.csv
+2025-12-25 21:33:57 | INFO     |   2025-12: 5.11% [4.14, 6.46]
+2025-12-25 21:33:57 | INFO     |   2026-01: 5.06% [4.11, 6.40]
+2025-12-25 21:33:57 | INFO     |   2026-02: 5.05% [4.10, 6.39]
+2025-12-25 21:33:57 | INFO     |   2026-03: 5.04% [4.10, 6.38]
+2025-12-25 21:33:57 | INFO     |   2026-04: 5.04% [4.10, 6.38]
+2025-12-25 21:33:57 | INFO     |   2026-05: 5.04% [4.10, 6.38]
+2025-12-25 21:33:57 | INFO     |   2026-06: 5.04% [4.10, 6.38]
+2025-12-25 21:33:57 | INFO     |   2026-07: 5.04% [4.10, 6.38]
+2025-12-25 21:33:57 | INFO     |   2026-08: 5.04% [4.10, 6.38]
+2025-12-25 21:33:57 | INFO     |   2026-09: 5.04% [4.10, 6.39]
+2025-12-25 21:33:57 | INFO     |   2026-10: 5.04% [4.10, 6.38]
+2025-12-25 21:33:57 | INFO     |   2026-11: 5.04% [4.10, 6.38]
+2025-12-25 21:38:25 | INFO     | ======================================================================
+2025-12-25 21:38:25 | INFO     |   ENTRENAMIENTO DE MODELOS
+2025-12-25 21:38:25 | INFO     | ======================================================================
+2025-12-25 21:38:25 | INFO     | Dataset: 251 filas, 7 features
+2025-12-25 21:38:25 | INFO     | Rango: 2005-01-01 00:00:00 → 2025-11-01 00:00:00
+2025-12-25 21:38:25 | INFO     | Train: 193, Val: 23, Test: 23
+2025-12-25 21:38:25 | INFO     | Entrenando modelo TFT...
+2025-12-25 21:38:26 | WARNING  | From C:\Users\mateo\anaconda3\Lib\site-packages\keras\src\backend\tensorflow\core.py:216: The name tf.placeholder is deprecated. Please use tf.compat.v1.placeholder instead.
+
+2025-12-25 21:38:53 | INFO     | ✓ TFT entrenado y guardado
+2025-12-25 21:38:53 | INFO     | Entrenando modelo LSTM...
+2025-12-25 21:39:03 | INFO     | ✓ LSTM entrenado y guardado
+2025-12-25 21:44:48 | INFO     | ======================================================================
+2025-12-25 21:44:48 | INFO     |   ESTADO DEL SISTEMA
+2025-12-25 21:44:48 | INFO     | ======================================================================
+2025-12-25 21:44:48 | INFO     | Última descarga:    None
+2025-12-25 21:44:48 | INFO     | Último entrenamiento: 2025-12-25T21:39:03.713927
+2025-12-25 21:44:48 | INFO     | Última predicción:  2025-12-25T21:33:57.106843
+2025-12-25 21:44:48 | INFO     | Último fine-tuning: None
+2025-12-25 21:44:48 | INFO     | Modelo activo:      tft_base.keras
+2025-12-25 21:44:48 | INFO     | Total predicciones: 1
+2025-12-25 21:44:48 | INFO     | Total descargas:    0
+2025-12-25 21:44:48 | INFO     | 
+Datos disponibles:
+2025-12-25 21:44:48 | INFO     |   Filas: 251
+2025-12-25 21:44:48 | INFO     |   Rango: 2005-01-01 00:00:00 → 2025-11-01 00:00:00
+2025-12-25 21:44:48 | INFO     |   Columnas: ['date', 'Inflacion_total', 'IPP', 'PIB_real_trimestral_2015_AE', 'Tasa_interes_colocacion_total', 'TRM', 'Brent', 'FAO']
+2025-12-25 21:44:55 | INFO     | ======================================================================
+2025-12-25 21:44:55 | INFO     |   ESTADO DEL SISTEMA
+2025-12-25 21:44:55 | INFO     | ======================================================================
+2025-12-25 21:44:55 | INFO     | Última descarga:    None
+2025-12-25 21:44:55 | INFO     | Último entrenamiento: 2025-12-25T21:39:03.713927
+2025-12-25 21:44:55 | INFO     | Última predicción:  2025-12-25T21:33:57.106843
+2025-12-25 21:44:55 | INFO     | Último fine-tuning: None
+2025-12-25 21:44:55 | INFO     | Modelo activo:      tft_base.keras
+2025-12-25 21:44:55 | INFO     | Total predicciones: 1
+2025-12-25 21:44:55 | INFO     | Total descargas:    0
+2025-12-25 21:44:55 | INFO     | 
+Datos disponibles:
+2025-12-25 21:44:55 | INFO     |   Filas: 251
+2025-12-25 21:44:55 | INFO     |   Rango: 2005-01-01 00:00:00 → 2025-11-01 00:00:00
+2025-12-25 21:44:55 | INFO     |   Columnas: ['date', 'Inflacion_total', 'IPP', 'PIB_real_trimestral_2015_AE', 'Tasa_interes_colocacion_total', 'TRM', 'Brent', 'FAO']

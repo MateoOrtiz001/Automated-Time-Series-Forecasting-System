@@ -1,0 +1,283 @@
+2025-12-25 21:21:29,133 - INFO - 
+======================================================================
+2025-12-25 21:21:29,133 - INFO - PIPELINE MENSUAL DE PREDICCIÓN DE INFLACIÓN
+2025-12-25 21:21:29,133 - INFO - ======================================================================
+2025-12-25 21:21:29,133 - INFO - Fecha de ejecución: 2025-12-25 21:21:29
+2025-12-25 21:21:29,133 - INFO - Modelo actual: tft_base.keras
+2025-12-25 21:21:29,134 - INFO - Último fine-tuning: Nunca
+2025-12-25 21:21:29,134 - INFO - Cargando modelo: tft_base.keras
+2025-12-25 21:21:30,245 - WARNING - From C:\Users\mateo\anaconda3\Lib\site-packages\keras\src\backend\tensorflow\core.py:216: The name tf.placeholder is deprecated. Please use tf.compat.v1.placeholder instead.
+
+2025-12-25 21:21:31,036 - INFO - Dataset cargado: 249 filas
+2025-12-25 21:21:31,036 - INFO - Rango: 2005-01-01 00:00:00 → 2025-09-01 00:00:00
+2025-12-25 21:21:31,036 - INFO - Features (7):
+2025-12-25 21:21:31,036 - INFO -    • Inflacion_total: Inflación total (variación anual %)
+2025-12-25 21:21:31,036 - INFO -    • IPP: Índice de Precios del Productor
+2025-12-25 21:21:31,037 - INFO -    • PIB_real_trimestral_2015_AE: PIB real trimestral
+2025-12-25 21:21:31,037 - INFO -    • Tasa_interes_colocacion_total: Tasa de interés de colocación
+2025-12-25 21:21:31,037 - INFO -    • TRM: Tasa de cambio COP/USD
+2025-12-25 21:21:31,037 - INFO -    • Brent: Precio del petróleo Brent (USD/barril)
+2025-12-25 21:21:31,037 - INFO -    • FAO: Índice de precios de alimentos FAO
+2025-12-25 21:21:31,042 - INFO - 
+📊 Se requiere fine-tuning del modelo
+2025-12-25 21:21:31,042 - INFO - 
+============================================================
+2025-12-25 21:21:31,042 - INFO - INICIANDO FINE-TUNING DEL MODELO
+2025-12-25 21:21:31,042 - INFO - ============================================================
+2025-12-25 21:21:31,043 - INFO - Train: 191 samples
+2025-12-25 21:21:31,043 - INFO - Val: 23 samples
+2025-12-25 21:21:31,044 - INFO - Test: 23 samples
+2025-12-25 21:21:31,050 - INFO - 
+Entrenando 50 épocas con lr=0.0005...
+2025-12-25 21:21:47,611 - INFO - 
+Evaluación post fine-tuning:
+2025-12-25 21:21:49,011 - INFO -   Train: MAE=0.4170, RMSE=0.5832
+2025-12-25 21:21:49,452 - INFO -   Val: MAE=4.8665, RMSE=5.1764
+2025-12-25 21:21:49,533 - INFO -   Test: MAE=1.4343, RMSE=1.7559
+2025-12-25 21:21:49,538 - INFO - 
+✓ Modelo guardado: tft_finetuned_202512_v1.keras
+2025-12-25 21:21:49,543 - INFO - Dataset cargado: 249 filas
+2025-12-25 21:21:49,543 - INFO - Rango: 2005-01-01 00:00:00 → 2025-09-01 00:00:00
+2025-12-25 21:21:49,543 - INFO - Features (7):
+2025-12-25 21:21:49,543 - INFO -    • Inflacion_total: Inflación total (variación anual %)
+2025-12-25 21:21:49,544 - INFO -    • IPP: Índice de Precios del Productor
+2025-12-25 21:21:49,544 - INFO -    • PIB_real_trimestral_2015_AE: PIB real trimestral
+2025-12-25 21:21:49,544 - INFO -    • Tasa_interes_colocacion_total: Tasa de interés de colocación
+2025-12-25 21:21:49,544 - INFO -    • TRM: Tasa de cambio COP/USD
+2025-12-25 21:21:49,544 - INFO -    • Brent: Precio del petróleo Brent (USD/barril)
+2025-12-25 21:21:49,544 - INFO -    • FAO: Índice de precios de alimentos FAO
+2025-12-25 21:21:49,546 - INFO - 
+Prediciendo 12 meses futuros...
+2025-12-25 21:21:50,493 - INFO - 
+Predicciones (Inflacion_total):
+2025-12-25 21:21:50,497 - INFO -   2025-10: 4.53% [3.43, 6.20]
+2025-12-25 21:21:50,497 - INFO -   2025-11: 4.37% [3.33, 6.03]
+2025-12-25 21:21:50,497 - INFO -   2025-12: 4.34% [3.31, 5.99]
+2025-12-25 21:21:50,497 - INFO -   2026-01: 4.33% [3.31, 5.98]
+2025-12-25 21:21:50,498 - INFO -   2026-02: 4.33% [3.31, 5.97]
+2025-12-25 21:21:50,498 - INFO -   2026-03: 4.33% [3.31, 5.97]
+2025-12-25 21:21:50,498 - INFO -   2026-04: 4.33% [3.31, 5.98]
+2025-12-25 21:21:50,498 - INFO -   2026-05: 4.33% [3.31, 5.98]
+2025-12-25 21:21:50,498 - INFO -   2026-06: 4.34% [3.31, 5.98]
+2025-12-25 21:21:50,499 - INFO -   2026-07: 4.34% [3.31, 5.98]
+2025-12-25 21:21:50,499 - INFO -   2026-08: 4.34% [3.31, 5.98]
+2025-12-25 21:21:50,499 - INFO -   2026-09: 4.34% [3.31, 5.98]
+2025-12-25 21:21:50,504 - INFO - ✓ Predicciones guardadas: predictions_20251225_212150.csv
+2025-12-25 21:21:50,864 - INFO - ✓ Gráfico guardado: predictions_plot_20251225_212150.png
+2025-12-25 21:21:50,871 - INFO - 
+======================================================================
+2025-12-25 21:21:50,871 - INFO - ✅ PIPELINE COMPLETADO EXITOSAMENTE
+2025-12-25 21:21:50,872 - INFO - ======================================================================
+
+2025-12-25 21:22:14,769 - INFO - 
+======================================================================
+2025-12-25 21:22:14,769 - INFO - PIPELINE MENSUAL DE PREDICCIÓN DE INFLACIÓN
+2025-12-25 21:22:14,769 - INFO - ======================================================================
+2025-12-25 21:22:14,769 - INFO - Fecha de ejecución: 2025-12-25 21:22:14
+2025-12-25 21:22:14,769 - INFO - Modelo actual: tft_finetuned_202512_v1.keras
+2025-12-25 21:22:14,769 - INFO - Último fine-tuning: 2025-12-25T21:21:49.533732
+2025-12-25 21:22:14,769 - INFO - ============================================================
+2025-12-25 21:22:14,771 - INFO - INICIANDO DESCARGA DE DATOS
+2025-12-25 21:22:14,771 - INFO - ============================================================
+2025-12-25 21:22:14,771 - INFO - 
+[1/3] Descargando datos de BanRep (SUAMECA)...
+2025-12-25 21:22:16,571 - INFO - ✓ BanRep descargado correctamente
+2025-12-25 21:22:16,572 - INFO - 
+[2/3] Descargando índice FAO...
+2025-12-25 21:22:16,572 - ERROR - ✗ Error descargando FAO: extraer_fao_indices() got an unexpected keyword argument 'destino'
+2025-12-25 21:22:16,572 - INFO - 
+[3/3] Descargando precio Brent (FRED)...
+2025-12-25 21:22:16,573 - ERROR - ✗ Error descargando Brent: extraer_brent_fred() got an unexpected keyword argument 'destino'
+2025-12-25 21:22:16,574 - INFO - Cargando modelo: tft_finetuned_202512_v1.keras
+2025-12-25 21:22:17,625 - WARNING - From C:\Users\mateo\anaconda3\Lib\site-packages\keras\src\backend\tensorflow\core.py:216: The name tf.placeholder is deprecated. Please use tf.compat.v1.placeholder instead.
+
+2025-12-25 21:22:18,369 - INFO - Dataset cargado: 249 filas
+2025-12-25 21:22:18,371 - INFO - Rango: 2005-01-01 00:00:00 → 2025-09-01 00:00:00
+2025-12-25 21:22:18,371 - INFO - Features (7):
+2025-12-25 21:22:18,371 - INFO -    • Inflacion_total: Inflación total (variación anual %)
+2025-12-25 21:22:18,371 - INFO -    • IPP: Índice de Precios del Productor
+2025-12-25 21:22:18,371 - INFO -    • PIB_real_trimestral_2015_AE: PIB real trimestral
+2025-12-25 21:22:18,371 - INFO -    • Tasa_interes_colocacion_total: Tasa de interés de colocación
+2025-12-25 21:22:18,371 - INFO -    • TRM: Tasa de cambio COP/USD
+2025-12-25 21:22:18,372 - INFO -    • Brent: Precio del petróleo Brent (USD/barril)
+2025-12-25 21:22:18,372 - INFO -    • FAO: Índice de precios de alimentos FAO
+2025-12-25 21:22:18,373 - INFO - 
+Prediciendo 12 meses futuros...
+2025-12-25 21:22:19,982 - INFO - 
+Predicciones (Inflacion_total):
+2025-12-25 21:22:19,983 - INFO -   2025-10: 4.53% [3.43, 6.20]
+2025-12-25 21:22:19,983 - INFO -   2025-11: 4.37% [3.33, 6.03]
+2025-12-25 21:22:19,983 - INFO -   2025-12: 4.34% [3.31, 5.99]
+2025-12-25 21:22:19,984 - INFO -   2026-01: 4.33% [3.31, 5.98]
+2025-12-25 21:22:19,984 - INFO -   2026-02: 4.33% [3.31, 5.97]
+2025-12-25 21:22:19,984 - INFO -   2026-03: 4.33% [3.31, 5.97]
+2025-12-25 21:22:19,984 - INFO -   2026-04: 4.33% [3.31, 5.98]
+2025-12-25 21:22:19,984 - INFO -   2026-05: 4.33% [3.31, 5.98]
+2025-12-25 21:22:19,986 - INFO -   2026-06: 4.34% [3.31, 5.98]
+2025-12-25 21:22:19,986 - INFO -   2026-07: 4.34% [3.31, 5.98]
+2025-12-25 21:22:19,986 - INFO -   2026-08: 4.34% [3.31, 5.98]
+2025-12-25 21:22:19,987 - INFO -   2026-09: 4.34% [3.31, 5.98]
+2025-12-25 21:22:19,991 - INFO - ✓ Predicciones guardadas: predictions_20251225_212219.csv
+2025-12-25 21:22:20,358 - INFO - ✓ Gráfico guardado: predictions_plot_20251225_212220.png
+2025-12-25 21:22:20,361 - INFO - 
+======================================================================
+2025-12-25 21:22:20,361 - WARNING - ⚠️ PIPELINE COMPLETADO CON ADVERTENCIAS: 1 errores
+2025-12-25 21:22:20,361 - WARNING -    - Algunos datos no se descargaron correctamente
+2025-12-25 21:22:20,361 - INFO - ======================================================================
+
+2025-12-25 21:23:03,696 - INFO - 
+======================================================================
+2025-12-25 21:23:03,697 - INFO - PIPELINE MENSUAL DE PREDICCIÓN DE INFLACIÓN
+2025-12-25 21:23:03,697 - INFO - ======================================================================
+2025-12-25 21:23:03,697 - INFO - Fecha de ejecución: 2025-12-25 21:23:03
+2025-12-25 21:23:03,697 - INFO - Modelo actual: tft_finetuned_202512_v1.keras
+2025-12-25 21:23:03,697 - INFO - Último fine-tuning: 2025-12-25T21:21:49.533732
+2025-12-25 21:23:03,697 - INFO - ============================================================
+2025-12-25 21:23:03,698 - INFO - INICIANDO DESCARGA DE DATOS
+2025-12-25 21:23:03,698 - INFO - ============================================================
+2025-12-25 21:23:03,698 - INFO - 
+[1/3] Descargando datos de BanRep (SUAMECA)...
+2025-12-25 21:23:05,562 - INFO - ✓ BanRep descargado correctamente
+2025-12-25 21:23:05,562 - INFO - 
+[2/3] Descargando índice FAO...
+2025-12-25 21:23:06,072 - INFO - ✓ FAO descargado correctamente
+2025-12-25 21:23:06,072 - INFO - 
+[3/3] Descargando precio Brent (FRED)...
+2025-12-25 21:23:06,570 - INFO - ✓ Brent descargado correctamente
+2025-12-25 21:23:06,570 - INFO - 
+[4/4] Consolidando datos procesados...
+2025-12-25 21:23:07,449 - INFO - ✓ Datos consolidados correctamente
+2025-12-25 21:23:07,450 - INFO - 
+======================================================================
+2025-12-25 21:23:07,450 - INFO - ✅ PIPELINE COMPLETADO EXITOSAMENTE
+2025-12-25 21:23:07,450 - INFO - ======================================================================
+
+2025-12-25 21:24:02,807 - INFO - 
+======================================================================
+2025-12-25 21:24:02,807 - INFO - PIPELINE MENSUAL DE PREDICCIÓN DE INFLACIÓN
+2025-12-25 21:24:02,807 - INFO - ======================================================================
+2025-12-25 21:24:02,808 - INFO - Fecha de ejecución: 2025-12-25 21:24:02
+2025-12-25 21:24:02,808 - INFO - Modelo actual: tft_finetuned_202512_v1.keras
+2025-12-25 21:24:02,808 - INFO - Último fine-tuning: 2025-12-25T21:21:49.533732
+2025-12-25 21:24:02,808 - INFO - Cargando modelo: tft_finetuned_202512_v1.keras
+2025-12-25 21:24:03,849 - WARNING - From C:\Users\mateo\anaconda3\Lib\site-packages\keras\src\backend\tensorflow\core.py:216: The name tf.placeholder is deprecated. Please use tf.compat.v1.placeholder instead.
+
+2025-12-25 21:24:04,560 - INFO - Dataset cargado: 249 filas
+2025-12-25 21:24:04,561 - INFO - Rango: 2005-01-01 00:00:00 → 2025-09-01 00:00:00
+2025-12-25 21:24:04,561 - INFO - Features (7):
+2025-12-25 21:24:04,561 - INFO -    • Inflacion_total: Inflación total (variación anual %)
+2025-12-25 21:24:04,561 - INFO -    • IPP: Índice de Precios del Productor
+2025-12-25 21:24:04,561 - INFO -    • PIB_real_trimestral_2015_AE: PIB real trimestral
+2025-12-25 21:24:04,562 - INFO -    • Tasa_interes_colocacion_total: Tasa de interés de colocación
+2025-12-25 21:24:04,562 - INFO -    • TRM: Tasa de cambio COP/USD
+2025-12-25 21:24:04,562 - INFO -    • Brent: Precio del petróleo Brent (USD/barril)
+2025-12-25 21:24:04,562 - INFO -    • FAO: Índice de precios de alimentos FAO
+2025-12-25 21:24:04,563 - INFO - 
+Prediciendo 12 meses futuros...
+2025-12-25 21:24:05,845 - INFO - 
+Predicciones (Inflacion_total):
+2025-12-25 21:24:05,846 - INFO -   2025-10: 4.53% [3.43, 6.20]
+2025-12-25 21:24:05,846 - INFO -   2025-11: 4.37% [3.33, 6.03]
+2025-12-25 21:24:05,847 - INFO -   2025-12: 4.34% [3.31, 5.99]
+2025-12-25 21:24:05,847 - INFO -   2026-01: 4.33% [3.31, 5.98]
+2025-12-25 21:24:05,847 - INFO -   2026-02: 4.33% [3.31, 5.97]
+2025-12-25 21:24:05,847 - INFO -   2026-03: 4.33% [3.31, 5.97]
+2025-12-25 21:24:05,848 - INFO -   2026-04: 4.33% [3.31, 5.98]
+2025-12-25 21:24:05,848 - INFO -   2026-05: 4.33% [3.31, 5.98]
+2025-12-25 21:24:05,848 - INFO -   2026-06: 4.34% [3.31, 5.98]
+2025-12-25 21:24:05,848 - INFO -   2026-07: 4.34% [3.31, 5.98]
+2025-12-25 21:24:05,848 - INFO -   2026-08: 4.34% [3.31, 5.98]
+2025-12-25 21:24:05,848 - INFO -   2026-09: 4.34% [3.31, 5.98]
+2025-12-25 21:24:05,851 - INFO - ✓ Predicciones guardadas: predictions_20251225_212405.csv
+2025-12-25 21:24:06,160 - INFO - ✓ Gráfico guardado: predictions_plot_20251225_212405.png
+2025-12-25 21:24:06,163 - INFO - 
+======================================================================
+2025-12-25 21:24:06,163 - INFO - ✅ PIPELINE COMPLETADO EXITOSAMENTE
+2025-12-25 21:24:06,163 - INFO - ======================================================================
+
+2025-12-25 21:29:50,757 - INFO - 
+======================================================================
+2025-12-25 21:29:50,757 - INFO - PIPELINE MENSUAL DE PREDICCIÓN DE INFLACIÓN
+2025-12-25 21:29:50,758 - INFO - ======================================================================
+2025-12-25 21:29:50,758 - INFO - Fecha de ejecución: 2025-12-25 21:29:50
+2025-12-25 21:29:50,758 - INFO - Modelo actual: tft_finetuned_202512_v1.keras
+2025-12-25 21:29:50,758 - INFO - Último fine-tuning: 2025-12-25T21:21:49.533732
+2025-12-25 21:29:50,758 - INFO - Cargando modelo: tft_finetuned_202512_v1.keras
+2025-12-25 21:29:51,838 - WARNING - From C:\Users\mateo\anaconda3\Lib\site-packages\keras\src\backend\tensorflow\core.py:216: The name tf.placeholder is deprecated. Please use tf.compat.v1.placeholder instead.
+
+2025-12-25 21:29:52,572 - INFO - Dataset cargado: 251 filas
+2025-12-25 21:29:52,572 - INFO - Rango: 2005-01-01 00:00:00 → 2025-11-01 00:00:00
+2025-12-25 21:29:52,572 - INFO - Features (7):
+2025-12-25 21:29:52,572 - INFO -    • Inflacion_total: Inflación total (variación anual %)
+2025-12-25 21:29:52,573 - INFO -    • IPP: Índice de Precios del Productor
+2025-12-25 21:29:52,573 - INFO -    • PIB_real_trimestral_2015_AE: PIB real trimestral
+2025-12-25 21:29:52,573 - INFO -    • Tasa_interes_colocacion_total: Tasa de interés de colocación
+2025-12-25 21:29:52,573 - INFO -    • TRM: Tasa de cambio COP/USD
+2025-12-25 21:29:52,573 - INFO -    • Brent: Precio del petróleo Brent (USD/barril)
+2025-12-25 21:29:52,573 - INFO -    • FAO: Índice de precios de alimentos FAO
+2025-12-25 21:29:52,574 - INFO - 
+Prediciendo 12 meses futuros...
+2025-12-25 21:29:53,856 - INFO - 
+Predicciones (Inflacion_total):
+2025-12-25 21:29:53,857 - INFO -   2025-12: 4.58% [3.47, 6.25]
+2025-12-25 21:29:53,857 - INFO -   2026-01: 4.39% [3.35, 6.04]
+2025-12-25 21:29:53,857 - INFO -   2026-02: 4.34% [3.32, 5.99]
+2025-12-25 21:29:53,858 - INFO -   2026-03: 4.33% [3.32, 5.97]
+2025-12-25 21:29:53,858 - INFO -   2026-04: 4.33% [3.31, 5.97]
+2025-12-25 21:29:53,858 - INFO -   2026-05: 4.33% [3.31, 5.97]
+2025-12-25 21:29:53,858 - INFO -   2026-06: 4.33% [3.31, 5.96]
+2025-12-25 21:29:53,859 - INFO -   2026-07: 4.32% [3.31, 5.96]
+2025-12-25 21:29:53,859 - INFO -   2026-08: 4.32% [3.31, 5.96]
+2025-12-25 21:29:53,859 - INFO -   2026-09: 4.32% [3.31, 5.96]
+2025-12-25 21:29:53,859 - INFO -   2026-10: 4.32% [3.31, 5.96]
+2025-12-25 21:29:53,859 - INFO -   2026-11: 4.33% [3.31, 5.96]
+2025-12-25 21:29:53,863 - INFO - ✓ Predicciones guardadas: predictions_20251225_212953.csv
+2025-12-25 21:29:54,182 - INFO - ✓ Gráfico guardado: predictions_plot_20251225_212953.png
+2025-12-25 21:29:54,185 - INFO - 
+======================================================================
+2025-12-25 21:29:54,185 - INFO - ✅ PIPELINE COMPLETADO EXITOSAMENTE
+2025-12-25 21:29:54,186 - INFO - ======================================================================
+
+2025-12-25 21:45:04,072 - INFO - 
+======================================================================
+2025-12-25 21:45:04,072 - INFO - PIPELINE MENSUAL DE PREDICCIÓN DE INFLACIÓN
+2025-12-25 21:45:04,072 - INFO - ======================================================================
+2025-12-25 21:45:04,073 - INFO - Fecha de ejecución: 2025-12-25 21:45:04
+2025-12-25 21:45:04,073 - INFO - Modelo actual: tft_finetuned_202512_v1.keras
+2025-12-25 21:45:04,073 - INFO - Último fine-tuning: 2025-12-25T21:21:49.533732
+2025-12-25 21:45:04,073 - INFO - Cargando modelo: tft_finetuned_202512_v1.keras
+2025-12-25 21:45:05,456 - WARNING - From C:\Users\mateo\anaconda3\Lib\site-packages\keras\src\backend\tensorflow\core.py:216: The name tf.placeholder is deprecated. Please use tf.compat.v1.placeholder instead.
+
+2025-12-25 21:45:06,376 - INFO - Dataset cargado: 251 filas
+2025-12-25 21:45:06,377 - INFO - Rango: 2005-01-01 00:00:00 → 2025-11-01 00:00:00
+2025-12-25 21:45:06,377 - INFO - Features (7):
+2025-12-25 21:45:06,377 - INFO -    • Inflacion_total: Inflación total (variación anual %)
+2025-12-25 21:45:06,377 - INFO -    • IPP: Índice de Precios del Productor
+2025-12-25 21:45:06,378 - INFO -    • PIB_real_trimestral_2015_AE: PIB real trimestral
+2025-12-25 21:45:06,378 - INFO -    • Tasa_interes_colocacion_total: Tasa de interés de colocación
+2025-12-25 21:45:06,378 - INFO -    • TRM: Tasa de cambio COP/USD
+2025-12-25 21:45:06,378 - INFO -    • Brent: Precio del petróleo Brent (USD/barril)
+2025-12-25 21:45:06,378 - INFO -    • FAO: Índice de precios de alimentos FAO
+2025-12-25 21:45:06,380 - INFO - 
+Prediciendo 12 meses futuros...
+2025-12-25 21:45:08,129 - INFO - 
+Predicciones (Inflacion_total):
+2025-12-25 21:45:08,130 - INFO -   2025-12: 4.58% [3.47, 6.25]
+2025-12-25 21:45:08,130 - INFO -   2026-01: 4.39% [3.35, 6.04]
+2025-12-25 21:45:08,130 - INFO -   2026-02: 4.34% [3.32, 5.99]
+2025-12-25 21:45:08,131 - INFO -   2026-03: 4.33% [3.32, 5.97]
+2025-12-25 21:45:08,131 - INFO -   2026-04: 4.33% [3.31, 5.97]
+2025-12-25 21:45:08,131 - INFO -   2026-05: 4.33% [3.31, 5.97]
+2025-12-25 21:45:08,131 - INFO -   2026-06: 4.33% [3.31, 5.96]
+2025-12-25 21:45:08,132 - INFO -   2026-07: 4.32% [3.31, 5.96]
+2025-12-25 21:45:08,132 - INFO -   2026-08: 4.32% [3.31, 5.96]
+2025-12-25 21:45:08,132 - INFO -   2026-09: 4.32% [3.31, 5.96]
+2025-12-25 21:45:08,132 - INFO -   2026-10: 4.32% [3.31, 5.96]
+2025-12-25 21:45:08,133 - INFO -   2026-11: 4.33% [3.31, 5.96]
+2025-12-25 21:45:08,136 - INFO -  Predicciones guardadas: predictions_20251225_214508.csv
+2025-12-25 21:45:08,533 - INFO -  Gráfico guardado: predictions_plot_20251225_214508.png
+2025-12-25 21:45:08,535 - INFO - 
+======================================================================
+2025-12-25 21:45:08,535 - INFO -  PIPELINE COMPLETADO EXITOSAMENTE
+2025-12-25 21:45:08,535 - INFO - ======================================================================
+

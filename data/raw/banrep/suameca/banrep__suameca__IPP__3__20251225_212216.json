@@ -1,0 +1,1750 @@
+[
+  {
+    "id": 3,
+    "nombre": "Índice de Precios del Productor (IPP)",
+    "categoria": "Índices de precios al productor",
+    "valor": 0.0,
+    "unidad": "Indice, base dic/2014=100",
+    "idTipoDato": 0,
+    "descripcionTipoDato": "Dato fin de mes",
+    "idPeriodicidad": 9,
+    "descripcionPeriodicidad": "Dato fin de mes",
+    "serieTipoDatos": "9",
+    "serieTipoCalculos": "11|20|21",
+    "fechaInicial": {
+      "year": 1999,
+      "month": 5,
+      "dayOfMonth": 30,
+      "hourOfDay": 0,
+      "minute": 0,
+      "second": 0
+    },
+    "fechaFinal": {
+      "year": 2025,
+      "month": 10,
+      "dayOfMonth": 30,
+      "hourOfDay": 0,
+      "minute": 0,
+      "second": 0
+    },
+    "fechaInicialFormateada": "junio de 1999",
+    "fechaFinalFormateada": "noviembre de 2025",
+    "fechaProximoCargue": {
+      "year": 2026,
+      "month": 0,
+      "dayOfMonth": 5,
+      "hourOfDay": 0,
+      "minute": 0,
+      "second": 0
+    },
+    "fechaProximoCargueFormateada": "05 de enero de 2026",
+    "fechaUltimoCargue": {
+      "year": 2025,
+      "month": 11,
+      "dayOfMonth": 5,
+      "hourOfDay": 0,
+      "minute": 0,
+      "second": 0
+    },
+    "fechaUltimoCargueFormateada": "05 de diciembre de 2025",
+    "idCategoria": 28,
+    "tiposCalculos": [
+      {
+        "idTipoDato": 11,
+        "descripcion": "Variación porcentual  mensual",
+        "descripcionIngles": "Monthly percentage change"
+      },
+      {
+        "idTipoDato": 20,
+        "descripcion": "Variación porcentual  anual",
+        "descripcionIngles": "Yearly percentage change"
+      },
+      {
+        "idTipoDato": 21,
+        "descripcion": "Variación porcentual  año corrido",
+        "descripcionIngles": "Current year percentage change"
+      }
+    ],
+    "tiposPeriodicidades": [
+      {
+        "idTipoDato": 9,
+        "descripcion": "Dato fin de mes",
+        "descripcionIngles": "End of month data"
+      },
+      {
+        "idTipoDato": 11,
+        "descripcion": "Variación porcentual  mensual",
+        "descripcionIngles": "Monthly percentage change"
+      },
+      {
+        "idTipoDato": 20,
+        "descripcion": "Variación porcentual  anual",
+        "descripcionIngles": "Yearly percentage change"
+      },
+      {
+        "idTipoDato": 21,
+        "descripcion": "Variación porcentual  año corrido",
+        "descripcionIngles": "Current year percentage change"
+      }
+    ],
+    "rank": 0,
+    "fuente": "Fuente: Departamento Administrativo Nacional de Estadística (DANE)",
+    "palabrasClavesEspanol": "ipp, indice de precios del productor (ipp)indice, mensual, indice, indice, precio, precios, productor, produccion, produccion, indicador, evolucion, evolucion, venta, primer canal, canal, comercializacion, comercializacion, distribucion, distribucion, bienes, transado, economia, economia, ipp, dane, departamento nacional de estadisticas, actividad, economica, industria, manufacturera, explotacion, explotacion, mina, cantera, agricultura, ganaderia, ganaderia, caza, silvicultura, pesca, dane, dato oficial",
+    "idCargue": "IPP2014",
+    "numeroConsultas": 0,
+    "seriesRelacionadas": "15000",
+    "categoriasRelacionadas": "54",
+    "notas": "El IPP es un indicador económico que mide los cambios y la evolución de los precios de los bienes en su primer canal de distribución, a través del seguimiento en el cambio de precios, de los bienes incluidos en las canastas representativas de los bienes producidos (tanto para el consumo al interior del país, como para exportación) y de las importaciones.",
+    "codigoSubCategoria": 801,
+    "descripcionSubCategoria": "IPP - Índice de Precios del Productor",
+    "ordenBusqueda": 20800.0,
+    "fichaTecnica": "http://www.dane.gov.co/files/investigaciones/boletines/ipp/Ficha_Met_IPP_15.pdf",
+    "baseSerie": "2014",
+    "categoriaNivel1": "Precios e inflación",
+    "categoriaNivel2": "Índices de precios al productor",
+    "categoriaNivel3": "Índices de precios al productor",
+    "descripcionCorta": "Índice de Precios del Productor (IPP)",
+    "desestacionalizacion": "",
+    "etiquetaAtributo": "",
+    "fuenteCorta": "Departamento Administrativo Nacional de Estadística (DANE)",
+    "geografiaSerie": "Nacional",
+    "padreSerie": "7200",
+    "periodoReferencia": "",
+    "precioSerie": "*",
+    "valorAtributo": "",
+    "padreSerieDescripcion": "Índice de Precios del Productor (IPP)",
+    "ordenado": false,
+    "seleccionaHijo": false,
+    "unidadCorta": "Índice",
+    "datoProducidoBanrep": "NO",
+    "numeroDecimales": 2,
+    "feErratas": "-",
+    "definicion": "El IPP es un indicador económico que mide los cambios y la evolución de los precios de los bienes en su primer canal de distribución, a través del seguimiento en el cambio de precios, de los bienes incluidos en las canastas representativas de los bienes producidos (tanto para el consumo al interior del país, como para exportación) y de las importaciones.",
+    "data": [
+      [
+        930718800000,
+        43.87
+      ],
+      [
+        933397200000,
+        44.59
+      ],
+      [
+        936075600000,
+        45.24
+      ],
+      [
+        938667600000,
+        45.71
+      ],
+      [
+        941346000000,
+        46.27
+      ],
+      [
+        943938000000,
+        46.89
+      ],
+      [
+        946616400000,
+        47.41
+      ],
+      [
+        949294800000,
+        48.07
+      ],
+      [
+        951800400000,
+        49.19
+      ],
+      [
+        954478800000,
+        49.87
+      ],
+      [
+        957070800000,
+        50.36
+      ],
+      [
+        959749200000,
+        50.83
+      ],
+      [
+        962341200000,
+        51.1
+      ],
+      [
+        965019600000,
+        51.5
+      ],
+      [
+        967698000000,
+        51.68
+      ],
+      [
+        970290000000,
+        52.27
+      ],
+      [
+        972968400000,
+        52.05
+      ],
+      [
+        975560400000,
+        52.01
+      ],
+      [
+        978238800000,
+        52.09
+      ],
+      [
+        980917200000,
+        53.01
+      ],
+      [
+        983336400000,
+        53.99
+      ],
+      [
+        986014800000,
+        54.43
+      ],
+      [
+        988606800000,
+        55.37
+      ],
+      [
+        991285200000,
+        55.97
+      ],
+      [
+        993877200000,
+        55.57
+      ],
+      [
+        996555600000,
+        55.37
+      ],
+      [
+        999234000000,
+        55.37
+      ],
+      [
+        1001826000000,
+        55.48
+      ],
+      [
+        1004504400000,
+        54.91
+      ],
+      [
+        1007096400000,
+        54.67
+      ],
+      [
+        1009774800000,
+        54.78
+      ],
+      [
+        1012453200000,
+        55.1
+      ],
+      [
+        1014872400000,
+        55.32
+      ],
+      [
+        1017550800000,
+        55.86
+      ],
+      [
+        1020142800000,
+        56.29
+      ],
+      [
+        1022821200000,
+        56.78
+      ],
+      [
+        1025413200000,
+        56.96
+      ],
+      [
+        1028091600000,
+        57.32
+      ],
+      [
+        1030770000000,
+        58.09
+      ],
+      [
+        1033362000000,
+        59.37
+      ],
+      [
+        1036040400000,
+        60.16
+      ],
+      [
+        1038632400000,
+        59.78
+      ],
+      [
+        1041310800000,
+        60.34
+      ],
+      [
+        1043989200000,
+        61.33
+      ],
+      [
+        1046408400000,
+        62.29
+      ],
+      [
+        1049086800000,
+        62.58
+      ],
+      [
+        1051678800000,
+        62.96
+      ],
+      [
+        1054357200000,
+        62.86
+      ],
+      [
+        1056949200000,
+        62.72
+      ],
+      [
+        1059627600000,
+        62.92
+      ],
+      [
+        1062306000000,
+        63.1
+      ],
+      [
+        1064898000000,
+        62.93
+      ],
+      [
+        1067576400000,
+        63.02
+      ],
+      [
+        1070168400000,
+        63.42
+      ],
+      [
+        1072846800000,
+        63.69
+      ],
+      [
+        1075525200000,
+        64.41
+      ],
+      [
+        1078030800000,
+        65.03
+      ],
+      [
+        1080709200000,
+        65.43
+      ],
+      [
+        1083301200000,
+        65.92
+      ],
+      [
+        1085979600000,
+        66.95
+      ],
+      [
+        1088571600000,
+        67.18
+      ],
+      [
+        1091250000000,
+        66.85
+      ],
+      [
+        1093928400000,
+        66.97
+      ],
+      [
+        1096520400000,
+        67.25
+      ],
+      [
+        1099198800000,
+        68.0
+      ],
+      [
+        1101790800000,
+        67.83
+      ],
+      [
+        1104469200000,
+        67.24
+      ],
+      [
+        1107147600000,
+        67.85
+      ],
+      [
+        1109566800000,
+        68.7
+      ],
+      [
+        1112245200000,
+        69.95
+      ],
+      [
+        1114837200000,
+        69.75
+      ],
+      [
+        1117515600000,
+        69.75
+      ],
+      [
+        1120107600000,
+        70.1
+      ],
+      [
+        1122786000000,
+        69.99
+      ],
+      [
+        1125464400000,
+        70.18
+      ],
+      [
+        1128056400000,
+        69.83
+      ],
+      [
+        1130734800000,
+        70.16
+      ],
+      [
+        1133326800000,
+        69.84
+      ],
+      [
+        1136005200000,
+        69.74
+      ],
+      [
+        1138683600000,
+        70.57
+      ],
+      [
+        1141102800000,
+        70.61
+      ],
+      [
+        1143781200000,
+        71.43
+      ],
+      [
+        1146373200000,
+        73.16
+      ],
+      [
+        1149051600000,
+        73.95
+      ],
+      [
+        1151643600000,
+        74.53
+      ],
+      [
+        1154322000000,
+        75.2
+      ],
+      [
+        1157000400000,
+        74.96
+      ],
+      [
+        1159592400000,
+        74.69
+      ],
+      [
+        1162270800000,
+        74.4
+      ],
+      [
+        1164862800000,
+        74.08
+      ],
+      [
+        1167541200000,
+        74.37
+      ],
+      [
+        1170219600000,
+        74.72
+      ],
+      [
+        1172638800000,
+        74.79
+      ],
+      [
+        1175317200000,
+        74.98
+      ],
+      [
+        1177909200000,
+        74.94
+      ],
+      [
+        1180587600000,
+        74.37
+      ],
+      [
+        1183179600000,
+        73.88
+      ],
+      [
+        1185858000000,
+        74.09
+      ],
+      [
+        1188536400000,
+        74.97
+      ],
+      [
+        1191128400000,
+        75.91
+      ],
+      [
+        1193806800000,
+        75.83
+      ],
+      [
+        1196398800000,
+        77.01
+      ],
+      [
+        1199077200000,
+        77.92
+      ],
+      [
+        1201755600000,
+        79.01
+      ],
+      [
+        1204261200000,
+        79.92
+      ],
+      [
+        1206939600000,
+        79.69
+      ],
+      [
+        1209531600000,
+        80.0
+      ],
+      [
+        1212210000000,
+        81.12
+      ],
+      [
+        1214802000000,
+        82.26
+      ],
+      [
+        1217480400000,
+        84.91
+      ],
+      [
+        1220158800000,
+        84.8
+      ],
+      [
+        1222750800000,
+        86.99
+      ],
+      [
+        1225429200000,
+        88.36
+      ],
+      [
+        1228021200000,
+        87.42
+      ],
+      [
+        1230699600000,
+        84.5
+      ],
+      [
+        1233378000000,
+        82.22
+      ],
+      [
+        1235797200000,
+        85.18
+      ],
+      [
+        1238475600000,
+        85.29
+      ],
+      [
+        1241067600000,
+        86.81
+      ],
+      [
+        1243746000000,
+        85.89
+      ],
+      [
+        1246338000000,
+        85.57
+      ],
+      [
+        1249016400000,
+        86.14
+      ],
+      [
+        1251694800000,
+        85.46
+      ],
+      [
+        1254286800000,
+        84.99
+      ],
+      [
+        1256965200000,
+        84.12
+      ],
+      [
+        1259557200000,
+        85.02
+      ],
+      [
+        1262235600000,
+        86.34
+      ],
+      [
+        1264914000000,
+        88.13
+      ],
+      [
+        1267333200000,
+        88.05
+      ],
+      [
+        1270011600000,
+        88.28
+      ],
+      [
+        1272603600000,
+        88.94
+      ],
+      [
+        1275282000000,
+        89.96
+      ],
+      [
+        1277874000000,
+        88.74
+      ],
+      [
+        1280552400000,
+        88.06
+      ],
+      [
+        1283230800000,
+        87.63
+      ],
+      [
+        1285822800000,
+        87.0
+      ],
+      [
+        1288501200000,
+        87.01
+      ],
+      [
+        1291093200000,
+        89.02
+      ],
+      [
+        1293771600000,
+        91.31
+      ],
+      [
+        1296450000000,
+        92.46
+      ],
+      [
+        1298869200000,
+        93.94
+      ],
+      [
+        1301547600000,
+        95.53
+      ],
+      [
+        1304139600000,
+        96.22
+      ],
+      [
+        1306818000000,
+        97.67
+      ],
+      [
+        1309410000000,
+        96.34
+      ],
+      [
+        1312088400000,
+        95.43
+      ],
+      [
+        1314766800000,
+        95.74
+      ],
+      [
+        1317358800000,
+        96.38
+      ],
+      [
+        1320037200000,
+        98.18
+      ],
+      [
+        1322629200000,
+        98.83
+      ],
+      [
+        1325307600000,
+        99.21
+      ],
+      [
+        1327986000000,
+        97.67
+      ],
+      [
+        1330491600000,
+        97.81
+      ],
+      [
+        1333170000000,
+        97.66
+      ],
+      [
+        1335762000000,
+        98.1
+      ],
+      [
+        1338440400000,
+        97.68
+      ],
+      [
+        1341032400000,
+        95.12
+      ],
+      [
+        1343710800000,
+        93.55
+      ],
+      [
+        1346389200000,
+        94.89
+      ],
+      [
+        1348981200000,
+        96.39
+      ],
+      [
+        1351659600000,
+        96.26
+      ],
+      [
+        1354251600000,
+        95.5
+      ],
+      [
+        1356930000000,
+        94.39
+      ],
+      [
+        1359608400000,
+        94.24
+      ],
+      [
+        1362027600000,
+        94.77
+      ],
+      [
+        1364706000000,
+        95.69
+      ],
+      [
+        1367298000000,
+        95.02
+      ],
+      [
+        1369976400000,
+        94.77
+      ],
+      [
+        1372568400000,
+        95.5
+      ],
+      [
+        1375246800000,
+        95.21
+      ],
+      [
+        1377925200000,
+        95.48
+      ],
+      [
+        1380517200000,
+        95.93
+      ],
+      [
+        1383195600000,
+        94.73
+      ],
+      [
+        1385787600000,
+        94.53
+      ],
+      [
+        1388466000000,
+        94.32
+      ],
+      [
+        1391144400000,
+        95.18
+      ],
+      [
+        1393563600000,
+        96.57
+      ],
+      [
+        1396242000000,
+        98.16
+      ],
+      [
+        1398834000000,
+        98.04
+      ],
+      [
+        1401512400000,
+        97.86
+      ],
+      [
+        1404104400000,
+        97.4
+      ],
+      [
+        1406782800000,
+        97.08
+      ],
+      [
+        1409461200000,
+        97.82
+      ],
+      [
+        1412053200000,
+        98.45
+      ],
+      [
+        1414731600000,
+        98.71
+      ],
+      [
+        1417323600000,
+        98.06
+      ],
+      [
+        1420002000000,
+        100.0
+      ],
+      [
+        1422680400000,
+        98.72
+      ],
+      [
+        1425099600000,
+        96.77
+      ],
+      [
+        1427778000000,
+        100.44
+      ],
+      [
+        1430370000000,
+        99.08
+      ],
+      [
+        1433048400000,
+        99.05
+      ],
+      [
+        1435640400000,
+        101.07
+      ],
+      [
+        1438318800000,
+        102.33
+      ],
+      [
+        1440997200000,
+        104.39
+      ],
+      [
+        1443589200000,
+        104.38
+      ],
+      [
+        1446267600000,
+        103.37
+      ],
+      [
+        1448859600000,
+        103.89
+      ],
+      [
+        1451538000000,
+        105.48
+      ],
+      [
+        1454216400000,
+        105.32
+      ],
+      [
+        1456722000000,
+        105.74
+      ],
+      [
+        1459400400000,
+        106.19
+      ],
+      [
+        1461992400000,
+        105.76
+      ],
+      [
+        1464670800000,
+        107.12
+      ],
+      [
+        1467262800000,
+        108.1
+      ],
+      [
+        1469941200000,
+        108.38
+      ],
+      [
+        1472619600000,
+        107.15
+      ],
+      [
+        1475211600000,
+        106.9
+      ],
+      [
+        1477890000000,
+        107.19
+      ],
+      [
+        1480482000000,
+        109.24
+      ],
+      [
+        1483160400000,
+        107.76
+      ],
+      [
+        1485838800000,
+        108.12
+      ],
+      [
+        1488258000000,
+        107.48
+      ],
+      [
+        1490936400000,
+        107.31
+      ],
+      [
+        1493528400000,
+        106.87
+      ],
+      [
+        1496206800000,
+        106.39
+      ],
+      [
+        1498798800000,
+        105.86
+      ],
+      [
+        1501477200000,
+        107.1
+      ],
+      [
+        1504155600000,
+        107.7
+      ],
+      [
+        1506747600000,
+        108.17
+      ],
+      [
+        1509426000000,
+        109.04
+      ],
+      [
+        1512018000000,
+        110.76
+      ],
+      [
+        1514696400000,
+        111.29
+      ],
+      [
+        1517374800000,
+        111.5
+      ],
+      [
+        1519794000000,
+        111.35
+      ],
+      [
+        1522472400000,
+        111.14
+      ],
+      [
+        1525064400000,
+        111.41
+      ],
+      [
+        1527742800000,
+        113.86
+      ],
+      [
+        1530334800000,
+        113.72
+      ],
+      [
+        1533013200000,
+        113.45
+      ],
+      [
+        1535691600000,
+        113.26
+      ],
+      [
+        1538283600000,
+        115.97
+      ],
+      [
+        1540962000000,
+        117.52
+      ],
+      [
+        1543554000000,
+        115.67
+      ],
+      [
+        1546232400000,
+        113.86
+      ],
+      [
+        1548910800000,
+        114.53
+      ],
+      [
+        1551330000000,
+        115.6
+      ],
+      [
+        1554008400000,
+        116.37
+      ],
+      [
+        1556600400000,
+        118.03
+      ],
+      [
+        1559278800000,
+        119.91
+      ],
+      [
+        1561870800000,
+        117.99
+      ],
+      [
+        1564549200000,
+        118.68
+      ],
+      [
+        1567227600000,
+        118.91
+      ],
+      [
+        1569819600000,
+        120.35
+      ],
+      [
+        1572498000000,
+        120.34
+      ],
+      [
+        1575090000000,
+        120.31
+      ],
+      [
+        1577768400000,
+        120.79
+      ],
+      [
+        1580446800000,
+        119.91
+      ],
+      [
+        1582952400000,
+        118.69
+      ],
+      [
+        1585630800000,
+        116.16
+      ],
+      [
+        1588222800000,
+        112.33
+      ],
+      [
+        1590901200000,
+        113.73
+      ],
+      [
+        1593493200000,
+        115.73
+      ],
+      [
+        1596171600000,
+        117.49
+      ],
+      [
+        1598850000000,
+        119.31
+      ],
+      [
+        1601442000000,
+        118.78
+      ],
+      [
+        1604120400000,
+        119.52
+      ],
+      [
+        1606712400000,
+        119.54
+      ],
+      [
+        1609390800000,
+        119.74
+      ],
+      [
+        1612069200000,
+        123.03
+      ],
+      [
+        1614488400000,
+        126.19
+      ],
+      [
+        1617166800000,
+        129.23
+      ],
+      [
+        1619758800000,
+        130.88
+      ],
+      [
+        1622437200000,
+        135.01
+      ],
+      [
+        1625029200000,
+        136.76
+      ],
+      [
+        1627707600000,
+        139.03
+      ],
+      [
+        1630386000000,
+        140.32
+      ],
+      [
+        1632978000000,
+        142.14
+      ],
+      [
+        1635656400000,
+        146.17
+      ],
+      [
+        1638248400000,
+        150.39
+      ],
+      [
+        1640926800000,
+        151.53
+      ],
+      [
+        1643605200000,
+        159.25
+      ],
+      [
+        1646024400000,
+        165.4
+      ],
+      [
+        1648702800000,
+        172.86
+      ],
+      [
+        1651294800000,
+        175.83
+      ],
+      [
+        1653973200000,
+        181.71
+      ],
+      [
+        1656565200000,
+        180.03
+      ],
+      [
+        1659243600000,
+        184.9
+      ],
+      [
+        1661922000000,
+        181.19
+      ],
+      [
+        1664514000000,
+        180.9
+      ],
+      [
+        1667192400000,
+        184.68
+      ],
+      [
+        1669784400000,
+        187.27
+      ],
+      [
+        1672462800000,
+        184.57
+      ],
+      [
+        1675141200000,
+        185.05
+      ],
+      [
+        1677560400000,
+        187.15
+      ],
+      [
+        1680238800000,
+        185.11
+      ],
+      [
+        1682830800000,
+        182.27
+      ],
+      [
+        1685509200000,
+        178.28
+      ],
+      [
+        1688101200000,
+        174.08
+      ],
+      [
+        1690779600000,
+        173.02
+      ],
+      [
+        1693458000000,
+        176.26
+      ],
+      [
+        1696050000000,
+        179.13
+      ],
+      [
+        1698728400000,
+        180.13
+      ],
+      [
+        1701320400000,
+        176.45
+      ],
+      [
+        1703998800000,
+        173.88
+      ],
+      [
+        1706677200000,
+        174.91
+      ],
+      [
+        1709182800000,
+        176.77
+      ],
+      [
+        1711861200000,
+        177.57
+      ],
+      [
+        1714453200000,
+        179.17
+      ],
+      [
+        1717131600000,
+        177.83
+      ],
+      [
+        1719723600000,
+        180.15
+      ],
+      [
+        1722402000000,
+        180.55
+      ],
+      [
+        1725080400000,
+        178.54
+      ],
+      [
+        1727672400000,
+        179.93
+      ],
+      [
+        1730350800000,
+        181.96
+      ],
+      [
+        1732942800000,
+        184.92
+      ],
+      [
+        1735621200000,
+        186.42
+      ],
+      [
+        1738299600000,
+        188.03
+      ],
+      [
+        1740718800000,
+        187.34
+      ],
+      [
+        1743397200000,
+        186.22
+      ],
+      [
+        1745989200000,
+        186.51
+      ],
+      [
+        1748667600000,
+        184.42
+      ],
+      [
+        1751259600000,
+        184.07
+      ],
+      [
+        1753938000000,
+        184.62
+      ],
+      [
+        1756616400000,
+        185.51
+      ],
+      [
+        1759208400000,
+        186.53
+      ],
+      [
+        1761886800000,
+        185.03
+      ],
+      [
+        1764478800000,
+        182.24
+      ]
+    ],
+    "metadataNotas": {
+      "idSerie": 3,
+      "nivel": "1",
+      "idNivel": "1.4",
+      "nombre": "Índice de Precios del Productor (IPP)",
+      "notas": [],
+      "seriesHijas": [
+        {
+          "idSerie": 900062,
+          "nivel": "2",
+          "idNivel": "1.4.1",
+          "nombre": "Índice de Precios del Productor (IPP) – Base 1999",
+          "notas": [
+            {
+              "descripcion": "A partir de enero de 1991, el Índice de precios del productor (IPP)– Base 1999 reemplaza al Índice de precios al por mayor del comercio en general (IPM).",
+              "fechaNotaDesde": "2023-01-01",
+              "fechaNotaHasta": "",
+              "tipo": "NOTA_ACLARATORIA",
+              "estado": "ACTIVO"
+            },
+            {
+              "descripcion": "El dato de la serie “Total” del Índice de precios del productor (IPP)– Base 1999 se calcula teniendo en cuenta bienes producidos y consumidos internamente y los importados. Por cambios metodológicos en la medición en enero de 2012 la serie del IPP fue recalculada desde enero de 2011.",
+              "fechaNotaDesde": "2023-01-01",
+              "fechaNotaHasta": "",
+              "tipo": "NOTA_ACLARATORIA",
+              "estado": "ACTIVO"
+            }
+          ],
+          "seriesHijas": [
+            {
+              "idSerie": 900063,
+              "nivel": "3",
+              "idNivel": "1.4.1.1",
+              "nombre": "IPP según procedencia de los bienes – Base 1999",
+              "notas": [
+                {
+                  "descripcion": "El Índice de precios del productor (IPP) por divisiones según la procedencia de los bienes – Base 1999 utiliza la clasificación CIIU (Rev. 3.1).",
+                  "fechaNotaDesde": "2023-01-01",
+                  "fechaNotaHasta": "",
+                  "tipo": "NOTA_ACLARATORIA",
+                  "estado": "ACTIVO"
+                },
+                {
+                  "descripcion": "Por cambios metodológicos en la medición en enero de 2012 la serie del Índice de precios del productor (IPP) según la procedencia de los bienes – Base 1999 fue recalculada desde enero de 2011.",
+                  "fechaNotaDesde": "2023-01-01",
+                  "fechaNotaHasta": "",
+                  "tipo": "NOTA_ACLARATORIA",
+                  "estado": "ACTIVO"
+                }
+              ],
+              "seriesHijas": []
+            },
+            {
+              "idSerie": 900065,
+              "nivel": "3",
+              "idNivel": "1.4.1.2",
+              "nombre": "IPP según uso o destino económico – Base 1999",
+              "notas": [
+                {
+                  "descripcion": "Por cambios metodológicos en la medición, en enero de 2012 la serie del Índice de precios del productor (IPP) según uso o destino económico – Base 1999 fue recalculada desde enero de 2011.",
+                  "fechaNotaDesde": "2023-01-01",
+                  "fechaNotaHasta": "",
+                  "tipo": "NOTA_ACLARATORIA",
+                  "estado": "ACTIVO"
+                }
+              ],
+              "seriesHijas": []
+            }
+          ]
+        },
+        {
+          "idSerie": 900068,
+          "nivel": "2",
+          "idNivel": "1.4.2",
+          "nombre": "Índice de precios del productor (IPP) – Base 2006",
+          "notas": [
+            {
+              "descripcion": "Por cambios metodológicos en la medición en enero de 2012 las series del Índice de precios del productor (IPP) total  – Base 2006 fueron recalculadas desde enero de 2011.",
+              "fechaNotaDesde": "2023-01-01",
+              "fechaNotaHasta": "",
+              "tipo": "NOTA_ACLARATORIA",
+              "estado": "ACTIVO"
+            }
+          ],
+          "seriesHijas": [
+            {
+              "idSerie": 900069,
+              "nivel": "3",
+              "idNivel": "1.4.2.1",
+              "nombre": "IPP Total según actividad económica – Base 2006",
+              "notas": [
+                {
+                  "descripcion": "Por cambios metodológicos en la medición en enero de 2012 la serie del Índice de precios del productor (IPP) total según actividad económica – Base 2006 fue recalculada desde enero de 2011.",
+                  "fechaNotaDesde": "2023-01-01",
+                  "fechaNotaHasta": "",
+                  "tipo": "NOTA_ACLARATORIA",
+                  "estado": "ACTIVO"
+                }
+              ],
+              "seriesHijas": []
+            },
+            {
+              "idSerie": 900070,
+              "nivel": "3",
+              "idNivel": "1.4.2.2",
+              "nombre": "IPP según procedencia de los bienes – Base 2006",
+              "notas": [
+                {
+                  "descripcion": "Por cambios metodológicos en la medición en enero de 2012 la serie del Índice de precios del productor (IPP) según procedencia de los bienes – Base 2006 fue recalculada desde enero de 2011.",
+                  "fechaNotaDesde": "2023-01-01",
+                  "fechaNotaHasta": "",
+                  "tipo": "NOTA_ACLARATORIA",
+                  "estado": "ACTIVO"
+                }
+              ],
+              "seriesHijas": []
+            },
+            {
+              "idSerie": 900071,
+              "nivel": "3",
+              "idNivel": "1.4.2.3",
+              "nombre": "IPP por divisiones según la procedencia de los bienes – Base 2006",
+              "notas": [
+                {
+                  "descripcion": "El Índice de precios del productor (IPP) por divisiones según la procedencia de los bienes – Base 2006 utiliza la clasificación CIIU (Rev. 3.1).",
+                  "fechaNotaDesde": "2023-01-01",
+                  "fechaNotaHasta": "",
+                  "tipo": "NOTA_ACLARATORIA",
+                  "estado": "ACTIVO"
+                },
+                {
+                  "descripcion": "Por cambios metodológicos en la medición en enero de 2012 la serie del Índice de precios del productor (IPP) por divisiones según la procedencia de los bienes – Base 2006 fue recalculada desde enero de 2011.",
+                  "fechaNotaDesde": "2023-01-01",
+                  "fechaNotaHasta": "",
+                  "tipo": "NOTA_ACLARATORIA",
+                  "estado": "ACTIVO"
+                }
+              ],
+              "seriesHijas": []
+            },
+            {
+              "idSerie": 900072,
+              "nivel": "3",
+              "idNivel": "1.4.2.4",
+              "nombre": "IPP según uso o destino económico – Base 2006",
+              "notas": [
+                {
+                  "descripcion": "Por cambios metodológicos en la medición en enero de 2012 la serie del Índice de precios del productor (IPP) según uso o destino económico – Base 2006 fue recalculada desde enero de 2011.",
+                  "fechaNotaDesde": "2023-01-01",
+                  "fechaNotaHasta": "",
+                  "tipo": "NOTA_ACLARATORIA",
+                  "estado": "ACTIVO"
+                }
+              ],
+              "seriesHijas": []
+            }
+          ]
+        },
+        {
+          "idSerie": 900073,
+          "nivel": "2",
+          "idNivel": "1.4.3",
+          "nombre": "Índice de precios del productor (IPP) – Base 2014",
+          "notas": [
+            {
+              "descripcion": "El 27 de noviembre de 2023 el Departamento Administrativo Nacional de Estadística (DANE) informó que fueron corregidos los resultados definitivos del Índice de Precios del Productor (IPP) – Base 2014 para el mes de septiembre y provisionales del mes de octubre de 2023. Por lo anterior se modificaron los datos que fueron publicados el 3 de noviembre de 2023.",
+              "fechaNotaDesde": "2023-01-01",
+              "fechaNotaHasta": "",
+              "tipo": "FE_ERRATA",
+              "estado": "ACTIVO"
+            },
+            {
+              "descripcion": "El 11 de febrero de 2021 se informa que el Departamento Administrativo Nacional de Estadística (DANE) determinó que a partir de enero de 2021 el Índice de precios del productor (IPP) – Base 2014 mensual divulgado será publicado como dato provisional, debido a que algunas fuentes de información no alcanzan a reportar los precios del mes completo. En este mismo sentido el dato del mes anterior al divulgado pasará de estado provisional a estado definitivo. Esto permitirá que los valores puedan ser revisados y cambiar de estado cuando se tenga la totalidad de los precios como valores definitivos.",
+              "fechaNotaDesde": "2023-01-01",
+              "fechaNotaHasta": "",
+              "tipo": "NOTA_ACLARATORIA",
+              "estado": "ACTIVO"
+            },
+            {
+              "descripcion": "El 7 de enero de 2021 se informa que el 6 de enero de 2021 se realizó un ajuste a la publicación del Índice de precios del productor (IPP) total – Base 2014 debido a que se mostraban de manera incorrecta los datos de los índices y las variaciones para el sector de agricultura.",
+              "fechaNotaDesde": "2023-01-01",
+              "fechaNotaHasta": "",
+              "tipo": "FE_ERRATA",
+              "estado": "ACTIVO"
+            },
+            {
+              "descripcion": "El 24 de diciembre de 2020 se notifica que la información correspondiente al reporte IPP Total base 2014 fue revisado y modificadas las series históricas de Índice IPP total Oferta Interna y sus variaciones: mensual, año corrido y anual e Índice IPP total Producción nacional y sus variaciones: mensual, año corrido y anual. Los demás reportes no presentaron ninguna modificación.",
+              "fechaNotaDesde": "2023-01-01",
+              "fechaNotaHasta": "",
+              "tipo": "FE_ERRATA",
+              "estado": "ACTIVO"
+            },
+            {
+              "descripcion": "A partir del mes de enero de 2015, el Departamento Administrativo Nacional de Estadística (DANE) publica un nuevo Índice de precios al productor (IPP), el cual tiene entre otras características, periodo base de comparación diciembre 2014 = 100, nueva canasta de actividades económicas, utilizando la clasificaciones CIIU versión 4 y CPC versión 2, estructura de ponderaciones con base en los equilibrios oferta - utilización de cuentas nacionales año 2011 y cifras de comercio exterior de 2009-2012 y ponderaciones flexibles al interior de las subclases (nivel más desagregado que se divulga). Por lo tanto, a partir de la fecha en nuestra página web se publicarán las series históricas empalmadas, base Dic 2014=100, de los grandes agregados del IPP: oferta Interna; el nuevo indicador, índice de precios de la producción nacional (IPN), que incluye bienes producidos nacionalmente sin importar el destino; los agregados según procedencia de los bienes (producidos y consumidos,  importados, exportados, exportados sin café); según destino económico (consumo intermedio, consumo final, bienes de capital y materiales de construcción ) y según actividad económica (agricultura, silvicultura y pesca; minería e industria manufacturera).",
+              "fechaNotaDesde": "2023-01-01",
+              "fechaNotaHasta": "",
+              "tipo": "NOTA_ACLARATORIA",
+              "estado": "ACTIVO"
+            }
+          ],
+          "seriesHijas": [
+            {
+              "idSerie": 900074,
+              "nivel": "3",
+              "idNivel": "1.4.3.1",
+              "nombre": "IPP Total según actividad económica – Base 2014",
+              "notas": [],
+              "seriesHijas": [
+                {
+                  "idSerie": 348,
+                  "nivel": "4",
+                  "idNivel": "1.4.3.1.1",
+                  "nombre": "Índice de Precios del Productor (IPP), Producción nacional - Agricultura, ganadería, caza, silvicultura y pesca",
+                  "notas": [],
+                  "seriesHijas": []
+                },
+                {
+                  "idSerie": 349,
+                  "nivel": "4",
+                  "idNivel": "1.4.3.1.2",
+                  "nombre": "Índice de Precios del Productor (IPP), Producción nacional - Explotación de minas y canteras",
+                  "notas": [],
+                  "seriesHijas": []
+                },
+                {
+                  "idSerie": 350,
+                  "nivel": "4",
+                  "idNivel": "1.4.3.1.3",
+                  "nombre": "Índice de Precios del Productor (IPP), Producción nacional - Industrias manufactureras",
+                  "notas": [],
+                  "seriesHijas": []
+                },
+                {
+                  "idSerie": 351,
+                  "nivel": "4",
+                  "idNivel": "1.4.3.1.4",
+                  "nombre": "Índice de Precios del Productor (IPP), Oferta interna - Total",
+                  "notas": [],
+                  "seriesHijas": []
+                },
+                {
+                  "idSerie": 352,
+                  "nivel": "4",
+                  "idNivel": "1.4.3.1.5",
+                  "nombre": "Índice de Precios del Productor (IPP), Oferta interna - Agricultura, ganadería, caza, silvicultura y pesca",
+                  "notas": [],
+                  "seriesHijas": []
+                },
+                {
+                  "idSerie": 353,
+                  "nivel": "4",
+                  "idNivel": "1.4.3.1.6",
+                  "nombre": "Índice de Precios del Productor (IPP), Oferta interna - Explotación de minas y canteras",
+                  "notas": [],
+                  "seriesHijas": []
+                },
+                {
+                  "idSerie": 354,
+                  "nivel": "4",
+                  "idNivel": "1.4.3.1.7",
+                  "nombre": "Índice de Precios del Productor (IPP), Oferta interna - Industria manufactureras",
+                  "notas": [],
+                  "seriesHijas": []
+                }
+              ]
+            },
+            {
+              "idSerie": 900075,
+              "nivel": "3",
+              "idNivel": "1.4.3.2",
+              "nombre": "IPP según procedencia de los bienes – Base 2014",
+              "notas": [],
+              "seriesHijas": [
+                {
+                  "idSerie": 355,
+                  "nivel": "4",
+                  "idNivel": "1.4.3.2.1",
+                  "nombre": "Índice de Precios del Productor (IPP), Según procedencia - producidos y consumidos",
+                  "notas": [],
+                  "seriesHijas": []
+                },
+                {
+                  "idSerie": 356,
+                  "nivel": "4",
+                  "idNivel": "1.4.3.2.2",
+                  "nombre": "Índice de Precios del Productor (IPP), Según procedencia - Importados",
+                  "notas": [],
+                  "seriesHijas": []
+                },
+                {
+                  "idSerie": 358,
+                  "nivel": "4",
+                  "idNivel": "1.4.3.2.3",
+                  "nombre": "Índice de Precios del Productor (IPP), Según procedencia - Exportados",
+                  "notas": [],
+                  "seriesHijas": []
+                }
+              ]
+            },
+            {
+              "idSerie": 900076,
+              "nivel": "3",
+              "idNivel": "1.4.3.3",
+              "nombre": "IPP por divisiones según la procedencia de los bienes – Base 2014",
+              "notas": [],
+              "seriesHijas": []
+            },
+            {
+              "idSerie": 900077,
+              "nivel": "3",
+              "idNivel": "1.4.3.4",
+              "nombre": "IPP según uso o destino económico – Base 2014",
+              "notas": [],
+              "seriesHijas": [
+                {
+                  "idSerie": 359,
+                  "nivel": "4",
+                  "idNivel": "1.4.3.4.1",
+                  "nombre": "Índice de Precios del Productor (IPP), Según uso o destino económico - Consumo intermedio",
+                  "notas": [],
+                  "seriesHijas": []
+                },
+                {
+                  "idSerie": 360,
+                  "nivel": "4",
+                  "idNivel": "1.4.3.4.2",
+                  "nombre": "Índice de Precios del Productor (IPP), Según uso o destino económico - Consumo final",
+                  "notas": [],
+                  "seriesHijas": []
+                },
+                {
+                  "idSerie": 361,
+                  "nivel": "4",
+                  "idNivel": "1.4.3.4.3",
+                  "nombre": "Índice de Precios del Productor (IPP), Según uso o destino económico - Bienes de capital",
+                  "notas": [],
+                  "seriesHijas": []
+                },
+                {
+                  "idSerie": 362,
+                  "nivel": "4",
+                  "idNivel": "1.4.3.4.4",
+                  "nombre": "Índice de Precios del Productor (IPP), Según uso o destino económico - Materiales de construcción",
+                  "notas": [],
+                  "seriesHijas": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+]

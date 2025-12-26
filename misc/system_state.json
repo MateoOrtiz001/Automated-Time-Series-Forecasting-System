@@ -1,0 +1,13 @@
+{
+  "created_at": "2025-12-25T21:33:53.202504",
+  "last_download": null,
+  "last_train": "2025-12-25T21:39:03.713927",
+  "last_predict": "2025-12-25T21:33:57.106843",
+  "last_finetune": null,
+  "last_analyze": null,
+  "active_model": "tft_base.keras",
+  "model_versions": [],
+  "total_predictions": 1,
+  "total_downloads": 0,
+  "updated_at": "2025-12-25T21:39:03.713927"
+}
