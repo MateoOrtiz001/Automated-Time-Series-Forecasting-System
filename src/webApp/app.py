@@ -432,17 +432,6 @@ def main():
             st.info(f"Modelo: {model_name}")
         
         st.divider()
-        
-        # Opciones
-        st.subheader("Opciones")
-        months_history = st.slider("Meses históricos a mostrar", 12, 120, 36)
-        show_confidence = st.checkbox("Mostrar intervalo de confianza", value=True)
-        
-        st.divider()
-        
-        # Botón de actualizar predicciones
-        if st.button("Generar nuevas predicciones", type="primary"):
-            st.session_state["regenerate"] = True
     
     # Cargar datos
     df = load_data()
