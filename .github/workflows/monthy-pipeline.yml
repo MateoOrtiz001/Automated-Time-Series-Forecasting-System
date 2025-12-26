@@ -1,0 +1,151 @@
+# =============================================================================
+# GitHub Actions Workflow: Monthly Pipeline
+# =============================================================================
+# Este workflow ejecuta el pipeline de predicción de inflación mensualmente.
+# 
+# Ejecución:
+#   - Automática: Día 5 de cada mes a las 10:00 UTC
+#   - Manual: Desde la pestaña Actions > Run workflow
+#
+# Proceso:
+#   1. Descarga datos de BanRep, FAO, FRED
+#   2. Consolida datos en CSV
+#   3. Genera predicciones para los próximos 12 meses
+#   4. Actualiza archivos latest.csv para el dashboard
+#   5. Commit y push de los cambios
+#   6. Streamlit Cloud detecta el push y re-deploya automáticamente
+# =============================================================================
+
+name: Monthly Pipeline
+
+on:
+  # Ejecutar el día 5 de cada mes a las 10:00 UTC (5:00 AM Colombia)
+  schedule:
+    - cron: '0 10 5 * *'
+  
+  # Permitir ejecución manual desde GitHub
+  workflow_dispatch:
+    inputs:
+      force_finetune:
+        description: 'Force model fine-tuning'
+        required: false
+        default: 'false'
+        type: boolean
+
+# Permisos necesarios para hacer push
+permissions:
+  contents: write
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    steps:
+      # =====================================================================
+      # 1. Checkout del repositorio
+      # =====================================================================
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Necesario para push
+      
+      # =====================================================================
+      # 2. Configurar Python
+      # =====================================================================
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      
+      # =====================================================================
+      # 3. Instalar dependencias
+      # =====================================================================
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      # =====================================================================
+      # 4. Crear directorios necesarios
+      # =====================================================================
+      - name: Create directories
+        run: |
+          mkdir -p data/raw/banrep/suameca
+          mkdir -p data/raw/external
+          mkdir -p data/proc
+          mkdir -p misc/models
+          mkdir -p misc/results
+          mkdir -p misc/logs
+      
+      # =====================================================================
+      # 5. Ejecutar el pipeline
+      # =====================================================================
+      - name: Run monthly pipeline
+        run: |
+          if [ "${{ github.event.inputs.force_finetune }}" == "true" ]; then
+            python -m src.pipeline.monthly_pipeline --finetune
+          else
+            python -m src.pipeline.monthly_pipeline
+          fi
+        env:
+          TF_CPP_MIN_LOG_LEVEL: '2'
+          TF_ENABLE_ONEDNN_OPTS: '0'
+      
+      # =====================================================================
+      # 6. Copiar archivos a versiones "latest" (para Streamlit)
+      # =====================================================================
+      - name: Update latest files for dashboard
+        run: |
+          # Copiar el CSV de datos más reciente a latest.csv
+          latest_csv=$(ls -t data/proc/*.csv 2>/dev/null | head -1)
+          if [ -n "$latest_csv" ]; then
+            cp "$latest_csv" data/proc/latest.csv
+            echo "✓ Copied $latest_csv to data/proc/latest.csv"
+          fi
+          
+          # Copiar las predicciones más recientes
+          latest_pred=$(ls -t misc/results/predictions_*.csv 2>/dev/null | head -1)
+          if [ -n "$latest_pred" ]; then
+            cp "$latest_pred" misc/results/predictions_latest.csv
+            echo "✓ Copied $latest_pred to misc/results/predictions_latest.csv"
+          fi
+      
+      # =====================================================================
+      # 7. Commit y push de los cambios
+      # =====================================================================
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          
+          # Agregar archivos actualizados
+          git add data/proc/latest.csv || true
+          git add misc/results/predictions_latest.csv || true
+          git add src/pipeline/pipeline_state.json || true
+          
+          # Solo commit si hay cambios
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "🔄 Monthly update: $(date +'%Y-%m-%d')"
+            git push
+            echo "✓ Changes pushed successfully"
+          fi
+      
+      # =====================================================================
+      # 8. Resumen del job
+      # =====================================================================
+      - name: Job summary
+        run: |
+          echo "## 🔄 Monthly Pipeline Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Data Files" >> $GITHUB_STEP_SUMMARY
+          echo "- Latest data: \`data/proc/latest.csv\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Predictions: \`misc/results/predictions_latest.csv\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Pipeline State" >> $GITHUB_STEP_SUMMARY
+          if [ -f "src/pipeline/pipeline_state.json" ]; then
+            cat src/pipeline/pipeline_state.json >> $GITHUB_STEP_SUMMARY
+          fi
