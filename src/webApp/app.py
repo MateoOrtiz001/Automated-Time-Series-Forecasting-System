@@ -286,9 +286,13 @@ def plot_inflation_forecast(df_hist, df_pred, months_history=36):
             showlegend=True,
         ))
     
-    # Línea vertical de corte
+    # Línea vertical de corte (convertir a string para compatibilidad con plotly)
+    last_date = df_hist["date"].iloc[-1]
+    if hasattr(last_date, 'strftime'):
+        last_date = last_date.strftime('%Y-%m-%d')
+    
     fig.add_vline(
-        x=df_hist["date"].iloc[-1],
+        x=last_date,
         line_dash="dot",
         line_color="gray",
         annotation_text="Último dato real",
