@@ -432,6 +432,20 @@ def main():
             st.info(f"Modelo: {model_name}")
         
         st.divider()
+        
+        # Controles de visualización
+        st.subheader("Visualización")
+        months_history = st.slider(
+            "Meses de historial",
+            min_value=12,
+            max_value=120,
+            value=36,
+            step=6,
+        )
+        
+        show_confidence = st.checkbox("Mostrar intervalo de confianza", value=True)
+        
+        st.divider()
     
     # Cargar datos
     df = load_data()
