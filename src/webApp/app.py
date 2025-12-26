@@ -286,16 +286,29 @@ def plot_inflation_forecast(df_hist, df_pred, months_history=36):
             showlegend=True,
         ))
     
-    # Línea vertical de corte (convertir a string para compatibilidad con plotly)
+    # Línea vertical de corte
+    # Nota: en algunas versiones de Plotly, `annotation_text` en `add_vline` falla
+    # con ejes de fecha (intenta promediar valores datetime). Por eso, agregamos
+    # la anotación por separado.
     last_date = df_hist["date"].iloc[-1]
-    if hasattr(last_date, 'strftime'):
-        last_date = last_date.strftime('%Y-%m-%d')
-    
+    if hasattr(last_date, "to_pydatetime"):
+        last_date = last_date.to_pydatetime()
+
     fig.add_vline(
         x=last_date,
         line_dash="dot",
         line_color="gray",
-        annotation_text="Último dato real",
+    )
+
+    fig.add_annotation(
+        x=last_date,
+        y=1,
+        yref="paper",
+        text="Último dato real",
+        showarrow=False,
+        xanchor="left",
+        yanchor="bottom",
+        font=dict(color="gray"),
     )
     
     # Meta de inflación del Banco de la República
@@ -543,10 +556,21 @@ def main():
         # Tabla de predicciones
         if pred_df is not None:
             st.subheader(" Tabla de Predicciones")
-            
-            display_df = pred_df.copy()
-            display_df["date"] = display_df["date"].dt.strftime("%Y-%m")
-            display_df.columns = ["Fecha", "Predicción (%)", "Límite Inf.", "Límite Sup."]
+
+            # pred_df puede incluir columnas extra (p.ej. metadata). Seleccionamos
+            # solo las columnas esperadas para mostrar.
+            cols = [c for c in ["date", "prediction", "lower", "upper"] if c in pred_df.columns]
+            display_df = pred_df[cols].copy()
+            if "date" in display_df.columns:
+                display_df["date"] = pd.to_datetime(display_df["date"]).dt.strftime("%Y-%m")
+            display_df = display_df.rename(
+                columns={
+                    "date": "Fecha",
+                    "prediction": "Predicción (%)",
+                    "lower": "Límite Inf.",
+                    "upper": "Límite Sup.",
+                }
+            )
             
             st.dataframe(
                 display_df.style.format({
