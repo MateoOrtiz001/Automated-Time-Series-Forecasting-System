@@ -1,6 +1,7 @@
 # Git
 .git
 .gitignore
+.github
 
 # Python
 __pycache__
@@ -37,9 +38,10 @@ results/
 *.tmp
 *.temp
 
-# Tests
-test*.py
-check_dates.py
+# Test files en raíz (pero no el directorio tests/)
+# Mantener tests/ para pytest en CI/CD
+/test*.py
+/check_dates.py
 
 # Notebooks
 *.ipynb
