@@ -41,9 +41,7 @@ from src.etl.dataExtractor import (
 from src.model.model import TFTModel
 
 
-# ============================================================================
 # CONFIGURACIÓN GLOBAL
-# ============================================================================
 CONFIG = {
     # Rutas principales
     "root_dir": ROOT_DIR,
@@ -111,9 +109,7 @@ VARIABLE_DESCRIPTIONS = {
 }
 
 
-# ============================================================================
 # LOGGING
-# ============================================================================
 def setup_logging(log_dir: Path = None) -> logging.Logger:
     """Configura logging a archivo y consola.
     
@@ -142,9 +138,7 @@ def setup_logging(log_dir: Path = None) -> logging.Logger:
     return logger
 
 
-# ============================================================================
 # ESTADO DEL PIPELINE
-# ============================================================================
 class PipelineState:
     """Maneja el estado persistente del pipeline."""
     
@@ -199,9 +193,7 @@ class PipelineState:
         self.save()
 
 
-# ============================================================================
-# LIMPIEZA DE ARCHIVOS (SISTEMA DE ROTACIÓN)
-# ============================================================================
+# LIMPIEZA DE ARCHIVOS
 def cleanup_old_files(
     directory: Path,
     pattern: str,
@@ -350,40 +342,34 @@ def cleanup_models(logger: logging.Logger) -> List[Path]:
 
 
 def cleanup_predictions(logger: logging.Logger) -> List[Path]:
-    """Limpia archivos de predicciones antiguos (excluyendo *_latest.csv)."""
+    """Limpia archivos de predicciones antiguos, dejando solo *_latest.*"""
     deleted = []
     
     results_dir = CONFIG["pipeline_results_dir"]
     if not results_dir.exists():
         return deleted
     
-    # CSVs de predicciones (excluir predictions_latest.csv)
     csv_files = [f for f in results_dir.glob("predictions_*.csv") 
-                 if not f.name.endswith("_latest.csv") and f.name != "predictions_latest.csv"]
+                 if f.name != "predictions_latest.csv"]
     
-    if len(csv_files) > CONFIG["max_prediction_versions"]:
-        # Ordenar por timestamp en nombre (formato: predictions_YYYYMMDD_HHMMSS.csv)
-        csv_files = sorted(csv_files, key=lambda p: p.stem.split("_", 1)[1] if "_" in p.stem else "", reverse=True)
-        for f in csv_files[CONFIG["max_prediction_versions"]:]:
-            try:
-                f.unlink()
-                deleted.append(f)
-                logger.info(f"   [CLEANUP] Eliminado: {f.name}")
-            except Exception as e:
-                logger.warning(f"   [CLEANUP] No se pudo eliminar {f.name}: {e}")
+    for f in csv_files:
+        try:
+            f.unlink()
+            deleted.append(f)
+            logger.info(f"   [CLEANUP] Eliminado: {f.name}")
+        except Exception as e:
+            logger.warning(f"   [CLEANUP] No se pudo eliminar {f.name}: {e}")
+     
+    png_files = [f for f in results_dir.glob("predictions_plot_*.png")
+                 if f.name != "predictions_plot_latest.png"]
     
-    # Gráficos de predicciones
-    png_files = [f for f in results_dir.glob("predictions_plot_*.png")]
-    
-    if len(png_files) > CONFIG["max_prediction_versions"]:
-        png_files = sorted(png_files, key=lambda p: p.stem.split("_", 2)[2] if "_" in p.stem else "", reverse=True)
-        for f in png_files[CONFIG["max_prediction_versions"]:]:
-            try:
-                f.unlink()
-                deleted.append(f)
-                logger.info(f"   [CLEANUP] Eliminado: {f.name}")
-            except Exception as e:
-                logger.warning(f"   [CLEANUP] No se pudo eliminar {f.name}: {e}")
+    for f in png_files:
+        try:
+            f.unlink()
+            deleted.append(f)
+            logger.info(f"   [CLEANUP] Eliminado: {f.name}")
+        except Exception as e:
+            logger.warning(f"   [CLEANUP] No se pudo eliminar {f.name}: {e}")
     
     return deleted
 
@@ -435,9 +421,7 @@ def run_full_cleanup(logger: logging.Logger) -> Dict[str, Any]:
     return summary
 
 
-# ============================================================================
 # DESCARGA DE DATOS
-# ============================================================================
 def download_all_data(logger: logging.Logger) -> bool:
     """Descarga todos los datos necesarios."""
     logger.info("=" * 60)
@@ -499,9 +483,7 @@ def download_all_data(logger: logging.Logger) -> bool:
     return success
 
 
-# ============================================================================
 # FUNCIONES DE MODELO
-# ============================================================================
 def load_model(logger: logging.Logger, state: PipelineState) -> Tuple[TFTModel, str]:
     """Carga el modelo más reciente (base o fine-tuned)."""
     models_dir = CONFIG["pipeline_models_dir"]
@@ -798,9 +780,7 @@ def train_model_from_scratch(
     return tft, str(model_path)
 
 
-# ============================================================================
 # GUARDADO DE RESULTADOS
-# ============================================================================
 def save_predictions(pred_df: pd.DataFrame, model_name: str, logger: logging.Logger) -> Path:
     """Guarda las predicciones en CSV (con timestamp y copia a latest)."""
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -883,9 +863,7 @@ def plot_predictions(
     return plot_path
 
 
-# ============================================================================
 # PIPELINE PRINCIPAL
-# ============================================================================
 def run_pipeline(
     download: bool = True,
     predict: bool = True,

@@ -233,12 +233,11 @@ def load_latest_predictions():
     if not MISC_RESULTS_DIR.exists():
         return None
     
-    pred_files = sorted(MISC_RESULTS_DIR.glob("predictions_*.csv"), reverse=True)
-    if not pred_files:
-        return None
+    latest_file = MISC_RESULTS_DIR / "predictions_latest.csv"
+    if latest_file.exists():
+        df = pd.read_csv(latest_file, parse_dates=["date"])
+        return df
     
-    df = pd.read_csv(pred_files[0], parse_dates=["date"])
-    return df
 
 
 def generate_predictions(model, df, n_months=12):
