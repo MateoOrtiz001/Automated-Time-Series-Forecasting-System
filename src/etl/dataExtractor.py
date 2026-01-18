@@ -501,14 +501,43 @@ SUAMECA_CONSULTA_DATOS_SERIES_URL = (
 # ============================================================================
 # FAO Food Price Index
 # ============================================================================
-FAO_INDICES_CSV_URL = (
-    "https://www.fao.org/media/docs/worldfoodsituationlibraries/"
-    "default-document-library/food_price_indices_data_csv_dec.csv?sfvrsn=523ebd2a_64&download=true"
-)
-FAO_INDICES_XLSX_URL = (
-    "https://www.fao.org/media/docs/worldfoodsituationlibraries/"
-    "default-document-library/food_price_indices_data_dec.xlsx?sfvrsn=63809b16_94"
-)
+# Página principal de FAO Food Price Index (para descubrir URLs dinámicamente)
+FAO_FPI_PAGE_URL = "https://www.fao.org/worldfoodsituation/foodpricesindex/en/"
+
+
+def _discover_fao_data_url(format: str = "csv", timeout_s: int = 30) -> str | None:
+    """Descubre dinámicamente la URL del archivo de datos FAO.
+    
+    FAO cambia el nombre del archivo mensualmente (ej: _dec.csv, _jan.csv),
+    por lo que es necesario scraping de la página para obtener la URL actual.
+    """
+    import re
+    
+    session = requests.Session()
+    session.headers.update({
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+    })
+    
+    try:
+        resp = session.get(FAO_FPI_PAGE_URL, timeout=timeout_s)
+        if resp.status_code != 200:
+            return None
+        
+        # Buscar links a archivos CSV o XLSX según el formato solicitado
+        ext_pattern = r'\.csv' if format == "csv" else r'\.xlsx'
+        pattern = rf'href=["\']([^"\']*food_price_indices_data[^"\']*{ext_pattern}[^"\']*)["\']'
+        matches = re.findall(pattern, resp.text, re.I)
+        
+        if matches:
+            url = matches[0].replace("&amp;", "&")
+            # Asegurar que sea URL absoluta
+            if not url.startswith("http"):
+                url = "https://www.fao.org" + url
+            return url
+        
+        return None
+    except Exception:
+        return None
 
 
 def _default_external_dir() -> Path:
@@ -524,6 +553,9 @@ def extraer_fao_indices(
 ) -> dict[str, Any]:
     """Descarga los índices de precios de alimentos de la FAO (nominales y reales mensuales).
 
+    La función descubre dinámicamente la URL correcta porque FAO cambia el nombre
+    del archivo mensualmente (ej: food_price_indices_data_dec.csv -> _jan.csv).
+
     Args:
         output_dir: Directorio de salida (por defecto: data/raw/external)
         format: 'csv' o 'xlsx'
@@ -536,16 +568,27 @@ def extraer_fao_indices(
     out_dir = Path(output_dir) if output_dir else _default_external_dir()
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    url = FAO_INDICES_CSV_URL if format == "csv" else FAO_INDICES_XLSX_URL
     ext = ".csv" if format == "csv" else ".xlsx"
 
     resultados: dict[str, Any] = {
         "source": "fao_food_price_index",
-        "url": url,
         "output_dir": str(out_dir),
         "run_at": datetime.now().isoformat(timespec="seconds"),
         "format": format,
     }
+
+    # Descubrir URL dinámicamente
+    if verbose:
+        print(f"[fao] Descubriendo URL actual del archivo ({format})...")
+    
+    url = _discover_fao_data_url(format=format, timeout_s=30)
+    
+    if not url:
+        resultados["status"] = "discovery_error"
+        resultados["error"] = "No se pudo descubrir la URL del archivo FAO. La página puede haber cambiado."
+        return resultados
+    
+    resultados["url"] = url
 
     session = requests.Session()
     session.headers.update(
@@ -558,6 +601,7 @@ def extraer_fao_indices(
     try:
         if verbose:
             print(f"[fao] Descargando índices de precios ({format})...")
+            print(f"[fao] URL: {url}")
 
         resp = session.get(url, timeout=http_timeout_s)
         if resp.status_code != 200:
@@ -806,44 +850,70 @@ def extraer_brent_fred(
     return resultados
 
 
-SUAMECA_DEFAULT_SERIES: dict[str, dict[str, Any]] = {
-    "Inflacion_total": {
-        "idSerie": 15270,
-        "fechaInicio": 19550731,
-        "fechaFin": 20251130,
-        "idPeriodicidades": [9],
-    },
-    # IPP (Índice de Precios del Productor)
-    # Según JSON provisto por el usuario:
-    # - fechaInicio: 19900630
-    # - fechaFin: 20251130
-    # - series[0].idSerie: 3
-    # - series[0].idPeriodicidades: [9]
-    "IPP": {
-        "idSerie": 3,
-        "fechaInicio": 19900630,
-        "fechaFin": 20251130,
-        "idPeriodicidades": [9],
-    },
-    "TRM": {
-        "idSerie": 1,
-        "fechaInicio": 19911127,
-        "fechaFin": 20251215,
-        "idPeriodicidades": [9, 22],
-    },
-    "Tasa_interes_colocacion_total": {
-        "idSerie": 15125,
-        "fechaInicio": 20020531,
-        "fechaFin": 20251130,
-        "idPeriodicidades": [22],
-    },
-    "PIB_real_trimestral_2015_AE": {
-        "idSerie": 15152,
-        "fechaInicio": 20050331,
-        "fechaFin": 20250930,
-        "idPeriodicidades": [12, 14],
-    },
-}
+def _get_dynamic_end_date() -> int:
+    """Genera fechaFin dinámica: último día del mes actual + 1 mes de margen."""
+    now = datetime.now()
+    # Calcular el último día del mes siguiente para dar margen
+    if now.month == 12:
+        # Si estamos en diciembre, ir a enero del año siguiente
+        return int(f"{now.year + 1}0131")
+    elif now.month == 11:
+        # Si estamos en noviembre, ir a diciembre
+        return int(f"{now.year}1231")
+    else:
+        # Último día del mes siguiente
+        next_month = now.month + 2
+        year = now.year
+        if next_month > 12:
+            next_month -= 12
+            year += 1
+        # Primer día del mes después del siguiente, menos 1 = último día del mes siguiente
+        if next_month == 12:
+            return int(f"{year}1231")
+        else:
+            return int(f"{year}{next_month:02d}01") - 1
+
+
+def _get_suameca_default_series() -> dict[str, dict[str, Any]]:
+    """Genera configuración de series con fechas dinámicas."""
+    end_date = _get_dynamic_end_date()
+    return {
+        "Inflacion_total": {
+            "idSerie": 15270,
+            "fechaInicio": 19550731,
+            "fechaFin": end_date,
+            "idPeriodicidades": [9],
+        },
+        # IPP (Índice de Precios del Productor)
+        "IPP": {
+            "idSerie": 3,
+            "fechaInicio": 19900630,
+            "fechaFin": end_date,
+            "idPeriodicidades": [9],
+        },
+        "TRM": {
+            "idSerie": 1,
+            "fechaInicio": 19911127,
+            "fechaFin": end_date,
+            "idPeriodicidades": [9, 22],
+        },
+        "Tasa_interes_colocacion_total": {
+            "idSerie": 15125,
+            "fechaInicio": 20020531,
+            "fechaFin": end_date,
+            "idPeriodicidades": [22],
+        },
+        "PIB_real_trimestral_2015_AE": {
+            "idSerie": 15152,
+            "fechaInicio": 20050331,
+            "fechaFin": end_date,
+            "idPeriodicidades": [12, 14],
+        },
+    }
+
+
+# Generar series con fechas dinámicas
+SUAMECA_DEFAULT_SERIES: dict[str, dict[str, Any]] = _get_suameca_default_series()
 
 
 def _build_suameca_payload_from_spec(

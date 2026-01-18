@@ -297,6 +297,21 @@ def cleanup_raw_data(logger: logging.Logger) -> Dict[str, List[Path]]:
             if deleted:
                 result[serie] = deleted
     
+    # Limpiar manifests antiguos
+    manifests = sorted(
+        suameca_dir.glob("*manifest*.json"),
+        key=lambda p: p.stem.split("__")[-1] if "__" in p.stem else "",
+        reverse=True
+    )
+    if len(manifests) > CONFIG["max_raw_versions"]:
+        for f in manifests[CONFIG["max_raw_versions"]:]:
+            try:
+                f.unlink()
+                logger.info(f"   [CLEANUP RAW] Eliminado manifest: {f.name}")
+                result.setdefault("manifests", []).append(f)
+            except Exception as e:
+                logger.warning(f"   [CLEANUP RAW] No se pudo eliminar {f.name}: {e}")
+    
     # Limpiar archivos externos (Brent, FAO)
     external_dir = CONFIG["data_raw_dir"] / "external"
     if external_dir.exists():
@@ -335,24 +350,40 @@ def cleanup_models(logger: logging.Logger) -> List[Path]:
 
 
 def cleanup_predictions(logger: logging.Logger) -> List[Path]:
-    """Limpia archivos de predicciones antiguos."""
+    """Limpia archivos de predicciones antiguos (excluyendo *_latest.csv)."""
     deleted = []
     
-    # CSVs de predicciones
-    deleted.extend(cleanup_old_files(
-        directory=CONFIG["pipeline_results_dir"],
-        pattern="predictions_*.csv",
-        max_versions=CONFIG["max_prediction_versions"],
-        logger=logger,
-    ))
+    results_dir = CONFIG["pipeline_results_dir"]
+    if not results_dir.exists():
+        return deleted
+    
+    # CSVs de predicciones (excluir predictions_latest.csv)
+    csv_files = [f for f in results_dir.glob("predictions_*.csv") 
+                 if not f.name.endswith("_latest.csv") and f.name != "predictions_latest.csv"]
+    
+    if len(csv_files) > CONFIG["max_prediction_versions"]:
+        # Ordenar por timestamp en nombre (formato: predictions_YYYYMMDD_HHMMSS.csv)
+        csv_files = sorted(csv_files, key=lambda p: p.stem.split("_", 1)[1] if "_" in p.stem else "", reverse=True)
+        for f in csv_files[CONFIG["max_prediction_versions"]:]:
+            try:
+                f.unlink()
+                deleted.append(f)
+                logger.info(f"   [CLEANUP] Eliminado: {f.name}")
+            except Exception as e:
+                logger.warning(f"   [CLEANUP] No se pudo eliminar {f.name}: {e}")
     
     # Gráficos de predicciones
-    deleted.extend(cleanup_old_files(
-        directory=CONFIG["pipeline_results_dir"],
-        pattern="predictions_plot_*.png",
-        max_versions=CONFIG["max_prediction_versions"],
-        logger=logger,
-    ))
+    png_files = [f for f in results_dir.glob("predictions_plot_*.png")]
+    
+    if len(png_files) > CONFIG["max_prediction_versions"]:
+        png_files = sorted(png_files, key=lambda p: p.stem.split("_", 2)[2] if "_" in p.stem else "", reverse=True)
+        for f in png_files[CONFIG["max_prediction_versions"]:]:
+            try:
+                f.unlink()
+                deleted.append(f)
+                logger.info(f"   [CLEANUP] Eliminado: {f.name}")
+            except Exception as e:
+                logger.warning(f"   [CLEANUP] No se pudo eliminar {f.name}: {e}")
     
     return deleted
 
@@ -449,12 +480,18 @@ def download_all_data(logger: logging.Logger) -> bool:
     if success:
         logger.info("\n[4/4] Consolidando datos procesados...")
         try:
-            consolidar_suameca_json_a_csv_mensual(
+            result = consolidar_suameca_json_a_csv_mensual(
                 input_dir=str(CONFIG["data_raw_dir"] / "banrep" / "suameca"),
                 proc_dir=str(CONFIG["data_proc_dir"]),
                 external_dir=str(CONFIG["data_raw_dir"] / "external"),
             )
             logger.info("✓ Datos consolidados correctamente")
+            
+            # Copiar a latest.csv (para Streamlit)
+            output_csv = Path(result["output_csv_path"])
+            latest_csv = CONFIG["data_proc_dir"] / "latest.csv"
+            shutil.copy(output_csv, latest_csv)
+            logger.info(f"✓ Actualizado: {latest_csv.name}")
         except Exception as e:
             logger.error(f"✗ Error consolidando datos: {e}")
             success = False
@@ -765,16 +802,22 @@ def train_model_from_scratch(
 # GUARDADO DE RESULTADOS
 # ============================================================================
 def save_predictions(pred_df: pd.DataFrame, model_name: str, logger: logging.Logger) -> Path:
-    """Guarda las predicciones en CSV."""
+    """Guarda las predicciones en CSV (con timestamp y copia a latest)."""
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     
     pred_df = pred_df.copy()
     pred_df["model"] = model_name
     pred_df["generated_at"] = timestamp
     
-    output_path = CONFIG["pipeline_results_dir"] / f"predictions_{timestamp}.csv"
     CONFIG["pipeline_results_dir"].mkdir(parents=True, exist_ok=True)
+    
+    # Guardar con timestamp
+    output_path = CONFIG["pipeline_results_dir"] / f"predictions_{timestamp}.csv"
     pred_df.to_csv(output_path, index=False)
+    
+    # También guardar como latest (para Streamlit)
+    latest_path = CONFIG["pipeline_results_dir"] / "predictions_latest.csv"
+    pred_df.to_csv(latest_path, index=False)
     
     logger.info(f"✓ Predicciones guardadas: {output_path.name}")
     
