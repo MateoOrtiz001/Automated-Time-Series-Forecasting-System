@@ -213,12 +213,7 @@ class TFTModel:
         return X, y
 
     @staticmethod
-    def time_split(
-        X: np.ndarray,
-        y: np.ndarray,
-        val_ratio: float = 0.1,
-        test_ratio: float = 0.1,
-    ):
+    def time_split(X: np.ndarray, y: np.ndarray, val_ratio: float = 0.1, test_ratio: float = 0.1):
         """Split temporal (sin shuffle): train | val | test."""
         n = len(X)
         if n < 10:
@@ -234,6 +229,28 @@ class TFTModel:
         X_val, y_val = X[n_train : n_train + n_val], y[n_train : n_train + n_val]
         X_test, y_test = X[n_train + n_val :], y[n_train + n_val :]
         return X_train, y_train, X_val, y_val, X_test, y_test
+
+    @staticmethod
+    def time_split_finetune(X,y,val_ratio = 0.1):
+        """ 
+        Orden: val (primeros) | train (resto) | Sin test
+        """
+        n = len(X)
+        if n < 10:
+            raise ValueError("Muy pocos ejemplos para split.")
+
+        n_val = int(n * val_ratio)
+        if n_val < 1:
+            n_val = 1
+        n_train = n - n_val
+        if n_train <= 0:
+            raise ValueError("val_ratio demasiado grande.")
+
+        # Val al inicio, train el resto
+        X_val, y_val = X[:n_val], y[:n_val]
+        X_train, y_train = X[n_val:], y[n_val:]
+        
+        return X_train, y_train, X_val, y_val
 
     @staticmethod
     def standardize_from_train(

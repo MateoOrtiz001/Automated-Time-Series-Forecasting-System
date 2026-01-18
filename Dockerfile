@@ -44,9 +44,7 @@ RUN pip install --upgrade pip && \
 
 # Copiar código fuente
 COPY src/ ./src/
-COPY feature_analysis.py .
 
-# Copiar tests
 COPY tests/ ./tests/
 
 # Crear directorios necesarios (se sobreescribirán con volúmenes montados)
@@ -57,8 +55,7 @@ RUN mkdir -p data/raw/banrep/suameca \
              misc/results \
              misc/logs \
              models \
-             results \
-             tests
+             results
 
 # Puerto para dashboard Streamlit
 EXPOSE 8501
@@ -99,8 +96,8 @@ try:
     import tensorflow as tf
     import pandas as pd
     import numpy as np
-    from src.model.model import TemporalFusionTransformer
-    from src.pipeline.monthly_pipeline import MonthlyPipeline
+    from src.model.model import TFTModel
+    from src.pipeline.core import run_pipeline
     print(' All imports successful')
     print(f'   TensorFlow: {tf.__version__}')
     print(f'   Pandas: {pd.__version__}')

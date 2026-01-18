@@ -73,11 +73,14 @@ CONFIG = {
     "future_months": 12,
     
     # Fine-tuning
-    "finetune_interval_months": 3,
+    "finetune_interval_months": 6,
     "finetune_epochs": 50,
     "finetune_patience": 15,
     "finetune_batch_size": 32,
     "finetune_lr": 5e-4,
+    "finetune_window_months": 120,  # Ventana móvil: últimos 10 años
+    "finetune_val_ratio": 0.1,      # Val del inicio (no del final)
+    "finetune_test_ratio": 0.0,     # Sin test en fine-tuning
     
     # Entrenamiento desde cero
     "train_epochs": 200,
@@ -600,10 +603,29 @@ def finetune_model(
     logger: logging.Logger,
     state: PipelineState,
 ) -> TFTModel:
-    """Realiza fine-tuning del modelo con los datos más recientes."""
+    """
+    Realiza fine-tuning del modelo con los datos más recientes.
+    
+    Estrategia:
+    - Ventana móvil: usa solo los últimos N meses (configurable).
+    - Split: val al INICIO de la ventana (para early stopping), train con el resto.
+    - Sin test: los datos más recientes SÍ participan en el entrenamiento.
+    
+    Para evaluación del modelo fine-tuneado, usar backtest walk-forward por separado.
+    """
     logger.info("\n" + "=" * 60)
     logger.info("INICIANDO FINE-TUNING DEL MODELO")
     logger.info("=" * 60)
+    
+    # --- Ventana móvil: recortar a los últimos N meses ---
+    window_months = CONFIG.get("finetune_window_months", 120)  # default 10 años
+    original_len = len(df)
+    
+    if len(df) > window_months:
+        df = df.iloc[-window_months:].reset_index(drop=True)
+        logger.info(f"Ventana móvil: usando últimos {window_months} meses ({len(df)} filas de {original_len} originales)")
+    else:
+        logger.info(f"Usando todos los datos disponibles ({len(df)} meses, menor que ventana de {window_months})")
     
     X, y = TFTModel.make_supervised_windows(
         df=df,
@@ -613,15 +635,18 @@ def finetune_model(
         forecast_horizon=CONFIG["forecast_horizon"],
     )
     
-    X_train, y_train, X_val, y_val, X_test, y_test = TFTModel.time_split(
-        X, y, val_ratio=CONFIG["val_ratio"], test_ratio=CONFIG["test_ratio"]
+    # --- Split para fine-tuning: val al inicio, sin test ---
+    val_ratio = CONFIG.get("finetune_val_ratio", 0.1)
+    X_train, y_train, X_val, y_val = TFTModel.time_split_finetune(
+        X, y, val_ratio=val_ratio
     )
     
-    X_train, X_val, X_test, mean, std = TFTModel.standardize_from_train(X_train, X_val, X_test)
+    # Estandarizar (nota: val está al inicio pero estandarizamos con train para consistencia)
+    X_train, X_val, _, mean, std = TFTModel.standardize_from_train(X_train, X_val, None)
     
-    logger.info(f"Train: {X_train.shape[0]} samples")
-    logger.info(f"Val: {X_val.shape[0] if X_val is not None else 0} samples")
-    logger.info(f"Test: {X_test.shape[0] if X_test is not None else 0} samples")
+    logger.info(f"Train: {X_train.shape[0]} samples (datos más recientes incluidos)")
+    logger.info(f"Val: {X_val.shape[0]} samples (del inicio de la ventana, para early stopping)")
+    logger.info(f"Test: 0 samples (sin test en fine-tuning; usar backtest para evaluación)")
     
     timestamp = datetime.now().strftime("%Y%m")
     finetune_count = state.state["finetune_count"] + 1
@@ -646,9 +671,10 @@ def finetune_model(
         model_path=str(new_model_path),
     )
     
-    logger.info("\nEvaluación post fine-tuning:")
+    logger.info("\nEvaluación post fine-tuning (in-sample):")
+    logger.info("  Nota: Sin test set. Para evaluación out-of-sample usar backtest walk-forward.")
     
-    for name, X, y_true in [("Train", X_train, y_train), ("Val", X_val, y_val), ("Test", X_test, y_test)]:
+    for name, X, y_true in [("Train", X_train, y_train), ("Val", X_val, y_val)]:
         if X is None or len(X) == 0:
             continue
         preds = model.predict(X)
