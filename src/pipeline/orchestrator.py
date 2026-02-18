@@ -36,6 +36,8 @@ from src.pipeline.core import (
     predict_future,
     finetune_model,
     train_model_from_scratch,
+    forecast_all_covariates,
+    get_scaler_stats,
     # Guardado
     save_predictions,
     plot_predictions,
@@ -128,7 +130,7 @@ class Orchestrator:
     def mode_predict(self, model_path: str = None) -> Dict[str, Any]:
         """Modo: Solo predicción.
         
-        Genera predicciones para los próximos 12 meses usando el modelo actual.
+        Genera predicciones para los próximos meses usando el modelo actual.
         
         Args:
             model_path: Ruta opcional al modelo. Si es None, usa el modelo actual.
@@ -139,9 +141,18 @@ class Orchestrator:
         self._header("PREDICCIÓN")
         
         model, model_name = load_model(self.logger, self.state)
-        df, feature_cols, mean, std = prepare_data(self.logger)
+        df, feature_cols = prepare_data(self.logger)
+        mean, std, mean_f, std_f = get_scaler_stats(df, feature_cols, self.logger)
         
-        pred_df = predict_future(model, df, feature_cols, mean, std, self.logger)
+        # Pronosticar todas las covariables futuras
+        covariate_forecasts = forecast_all_covariates(df, logger=self.logger)
+        
+        pred_df = predict_future(
+            model, df, feature_cols, mean, std, self.logger,
+            covariate_forecasts=covariate_forecasts,
+            mean_f=mean_f,
+            std_f=std_f,
+        )
         
         csv_path = save_predictions(pred_df, model_name, self.logger)
         plot_path = plot_predictions(df, pred_df, model_name, self.logger)
@@ -168,7 +179,7 @@ class Orchestrator:
         self._header("FINE-TUNING")
         
         model, model_name = load_model(self.logger, self.state)
-        df, feature_cols, mean, std = prepare_data(self.logger)
+        df, feature_cols = prepare_data(self.logger)
         
         model = finetune_model(model, df, feature_cols, self.logger, self.state)
         

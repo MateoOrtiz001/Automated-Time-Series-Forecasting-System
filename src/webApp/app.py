@@ -31,6 +31,7 @@ from plotly.subplots import make_subplots
 from datetime import datetime
 
 from src.model.model import TFTModel
+from src.pipeline.core import add_calendar_features, forecast_all_covariates, get_scaler_stats
 
 # =============================================================================
 # CONFIGURACIÓN
@@ -48,18 +49,37 @@ MODELS_DIR = ROOT_DIR / "models"
 MISC_DIR = ROOT_DIR / "misc"
 MISC_MODELS_DIR = MISC_DIR / "models"
 MISC_RESULTS_DIR = MISC_DIR / "results"
+PIPELINE_STATE_FILE = ROOT_DIR / "src" / "pipeline" / "pipeline_state.json"
+LEGACY_PIPELINE_STATE_FILE = MISC_DIR / "pipeline_state.json"
 
 # Configuración del modelo
 CONFIG = {
     "lookback_steps": 12,
-    "forecast_horizon": 1,
+    "forecast_horizon": 6,
     "target_col": "Inflacion_total",
-    "future_months": 12,
-    "tft_units": 74,
+    "future_months": 6,
+    "tft_units": 48,
     "tft_heads": 2,
     "tft_lstm_layers": 1,
-    "tft_grn_layers": 2,
+    "tft_grn_layers": 1,
     "tft_dropout": 0.1,
+    # Covariables futuras
+    "future_known_cols": ["sin_month", "cos_month"],
+    "future_forecast_cols": {
+        "IPP": {"method": "holt_damped"},
+        "TRM": {"method": "holt_damped"},
+        "Brent": {"method": "holt_damped"},
+        "FAO": {"method": "holt_damped"},
+        "Tasa_interes_colocacion_total": {"method": "ses"},
+        "PIB_real_trimestral_2015_AE": {"method": "holt_damped_quarterly"},
+    },
+    "past_only_cols": [],
+    "future_feature_cols": [
+        "sin_month", "cos_month", "IPP",
+        "TRM", "Brent", "FAO",
+        "Tasa_interes_colocacion_total", "PIB_real_trimestral_2015_AE",
+    ],
+    "covariate_forecast_steps": 6,
 }
 
 # Descripciones de variables
@@ -175,36 +195,41 @@ def load_model(_model_key: str = None):
     
     El parámetro _model_key permite invalidar el caché cuando hay un modelo nuevo.
     """
-    # Buscar modelo fine-tuned primero (el más reciente)
-    model_path = None
-    
+    candidate_paths = []
     if MISC_MODELS_DIR.exists():
         finetuned = sorted(MISC_MODELS_DIR.glob("tft_finetuned_*.keras"), reverse=True)
-        if finetuned:
-            model_path = finetuned[0]
-    
-    if model_path is None:
-        model_path = MISC_MODELS_DIR / "tft_base.keras"
-        if not model_path.exists():
-            model_path = MODELS_DIR / "tft_best.keras"
-    
-    if not model_path.exists():
+        candidate_paths.extend(finetuned)
+
+    candidate_paths.extend([
+        MISC_MODELS_DIR / "tft_base.keras",
+        MODELS_DIR / "tft_best.keras",
+    ])
+
+    unique_candidates = []
+    for p in candidate_paths:
+        if p.exists() and p not in unique_candidates:
+            unique_candidates.append(p)
+
+    if not unique_candidates:
         return None, None
     
-    # Cargar datos para obtener n_features (sin usar caché aquí)
+    # Cargar datos para obtener n_features (incluye calendar features)
     try:
         df = TFTModel.load_latest_proc_csv(DATA_PROC_DIR)
         df = df.dropna().reset_index(drop=True)
+        df = add_calendar_features(df)
     except Exception as e:
         st.error(f"Error cargando datos para modelo: {e}")
         return None, None
     
     feature_cols = [c for c in df.columns if c != "date"]
+    future_feature_cols = CONFIG.get("future_feature_cols", [])
     
     tft = TFTModel(
         lookback_steps=CONFIG["lookback_steps"],
         forecast_horizon=CONFIG["forecast_horizon"],
         n_features=len(feature_cols),
+        n_future_features=len(future_feature_cols),
         units=CONFIG["tft_units"],
         num_heads=CONFIG["tft_heads"],
         num_lstm_layers=CONFIG["tft_lstm_layers"],
@@ -213,18 +238,26 @@ def load_model(_model_key: str = None):
         num_quantiles=3,
     )
     
-    tft.build_model()
-    tft.model.load_weights(str(model_path))
-    
-    return tft, model_path.name
+    load_errors = []
+    for model_path in unique_candidates:
+        try:
+            tft.build_model()
+            tft.model.load_weights(str(model_path))
+            return tft, model_path.name
+        except Exception as e:
+            load_errors.append(f"{model_path.name}: {e}")
+
+    st.error("No se pudo cargar ningún modelo compatible para inferencia.")
+    st.caption(" | ".join(load_errors))
+    return None, None
 
 
 def load_pipeline_state():
     """Carga el estado del pipeline."""
-    state_file = MISC_DIR / "pipeline_state.json"
-    if state_file.exists():
-        with open(state_file, "r", encoding="utf-8") as f:
-            return json.load(f)
+    for state_file in [PIPELINE_STATE_FILE, LEGACY_PIPELINE_STATE_FILE]:
+        if state_file.exists():
+            with open(state_file, "r", encoding="utf-8") as f:
+                return json.load(f)
     return {}
 
 
@@ -240,58 +273,80 @@ def load_latest_predictions():
     
 
 
-def generate_predictions(model, df, n_months=12):
-    """Genera predicciones para los próximos n meses."""
+def generate_predictions(model, df, n_months=None):
+    """Genera predicciones directas con decoder de covariables futuras.
+    
+    El modelo recibe dos entradas:
+    - past_inputs: ventana de lookback estandarizada.
+    - future_inputs: covariables futuras estandarizadas.
+    
+    Las estadísticas de estandarización se cargan desde disco (guardadas
+    durante el entrenamiento) para garantizar consistencia.
+    """
+    n_months = n_months or CONFIG["future_months"]
+    future_feature_cols = CONFIG.get("future_feature_cols", [])
+    
+    # Agregar calendar features si no están
+    if "sin_month" not in df.columns:
+        df = add_calendar_features(df)
+    
     feature_cols = [c for c in df.columns if c != "date"]
-    target_idx = feature_cols.index(CONFIG["target_col"])
     
-    # Calcular estadísticas de normalización
-    X, y = TFTModel.make_supervised_windows(
-        df=df,
-        feature_cols=feature_cols,
-        target_col=CONFIG["target_col"],
-        lookback_steps=CONFIG["lookback_steps"],
-        forecast_horizon=CONFIG["forecast_horizon"],
-    )
-    X_train, _, _, _, _, _ = TFTModel.time_split(X, y)
-    _, _, _, mean, std = TFTModel.standardize_from_train(X_train)
+    # Cargar estadísticas de estandarización guardadas
+    mean, std, mean_f, std_f = get_scaler_stats(df, feature_cols, logger=None)
     
-    # Preparar datos
+    # Preparar entrada del encoder (lookback)
     data_features = df[feature_cols].to_numpy(dtype=np.float32)
     current_window = data_features[-CONFIG["lookback_steps"]:].copy()
     current_window_std = ((current_window - mean) / std).astype(np.float32)
+    X_past = current_window_std[np.newaxis, :, :]  # (1, lookback, n_features)
     
-    predictions = []
+    # Preparar entrada del decoder (features futuras)
     last_date = df["date"].iloc[-1]
     future_dates = pd.date_range(
         start=last_date + pd.DateOffset(months=1),
         periods=n_months,
-        freq="MS"
+        freq="MS",
     )
     
+    # Pronosticar todas las covariables futuras
+    covariate_forecasts = forecast_all_covariates(df, n_steps=n_months)
+    
+    # Construir features futuras
+    X_fut = np.zeros((1, n_months, len(future_feature_cols)), dtype=np.float32)
+    
+    for i, date in enumerate(future_dates):
+        month = date.month
+        for j, col in enumerate(future_feature_cols):
+            if col == "sin_month":
+                X_fut[0, i, j] = np.sin(2 * np.pi * month / 12)
+            elif col == "cos_month":
+                X_fut[0, i, j] = np.cos(2 * np.pi * month / 12)
+            elif col in covariate_forecasts and i < len(covariate_forecasts[col]):
+                X_fut[0, i, j] = covariate_forecasts[col][i]
+            else:
+                X_fut[0, i, j] = float(df[col].iloc[-1])
+    
+    # Estandarizar features futuras
+    if mean_f is not None and std_f is not None:
+        X_fut = ((X_fut - mean_f) / std_f).astype(np.float32)
+    
+    # Predicción directa (una sola pasada)
+    pred_result = model.predict([X_past, X_fut])
+    
+    # Extraer predicciones: (1, horizon, quantiles)
+    median = np.ravel(pred_result.get("median", pred_result["predictions"][..., 1]))
+    lower = np.ravel(pred_result["lower"]) if "lower" in pred_result else [None] * n_months
+    upper = np.ravel(pred_result["upper"]) if "upper" in pred_result else [None] * n_months
+    
+    predictions = []
     for i in range(n_months):
-        X_input = current_window_std[np.newaxis, :, :]
-        
-        pred_result = model.predict(X_input)
-        pred_value = pred_result.get("median", pred_result.get("predictions"))
-        pred_arr = np.ravel(pred_value)
-        pred_value = float(pred_arr[1] if pred_arr.size >= 3 else pred_arr[0])
-        
-        lower = float(np.ravel(pred_result["lower"])[0]) if "lower" in pred_result else None
-        upper = float(np.ravel(pred_result["upper"])[0]) if "upper" in pred_result else None
-        
         predictions.append({
             "date": future_dates[i],
-            "prediction": pred_value,
-            "lower": lower,
-            "upper": upper,
+            "prediction": float(median[i]),
+            "lower": float(lower[i]) if lower[i] is not None else None,
+            "upper": float(upper[i]) if upper[i] is not None else None,
         })
-        
-        # Actualizar ventana
-        new_row = current_window[-1].copy()
-        new_row[target_idx] = pred_value
-        current_window = np.vstack([current_window[1:], new_row])
-        current_window_std = ((current_window - mean) / std).astype(np.float32)
     
     return pd.DataFrame(predictions)
 
@@ -825,6 +880,7 @@ def main():
                 {"Parámetro": "Capas GRN", "Valor": CONFIG['tft_grn_layers']},
                 {"Parámetro": "Dropout", "Valor": CONFIG['tft_dropout']},
             ])
+            config_df["Valor"] = config_df["Valor"].astype(str)
             st.dataframe(config_df, hide_index=True, use_container_width=True)
             
             st.markdown("### Fuentes de Datos")

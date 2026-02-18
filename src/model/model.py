@@ -2,11 +2,11 @@ import tensorflow as tf
 import keras
 from tensorflow.keras.layers import (
     Layer, Dense, Add, Multiply, LayerNormalization, 
-    LSTM, Input, Dropout, TimeDistributed
+    LSTM, Input, Dropout, TimeDistributed, Reshape
 )
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
+from tensorflow.keras.callbacks import ModelCheckpoint, ReduceLROnPlateau
 import numpy as np
 import os
 from pathlib import Path
@@ -28,6 +28,7 @@ class TFTModel:
         lookback_steps: int,
         forecast_horizon: int = 1,
         n_features: int = 6,
+        n_future_features: int = 0,
         units: int = 32,
         num_heads: int = 2,
         num_lstm_layers: int = 1,
@@ -38,6 +39,7 @@ class TFTModel:
         self.lookback_steps = lookback_steps
         self.forecast_horizon = forecast_horizon
         self.n_features = n_features
+        self.n_future_features = n_future_features
         self.units = units
         self.num_heads = num_heads
         self.num_lstm_layers = num_lstm_layers
@@ -90,37 +92,94 @@ class TFTModel:
         return x
     
     def _build_output_layer(self, x):
-        """Capa de salida para predicción de cuantiles."""
+        """Capa de salida para predicción de cuantiles (sin decoder)."""
         # GRN final antes de salida
         x = GatedResidualNetwork(self.units, self.dropout_rate)(x)
         
-        # Tomar solo el último timestep o aplicar TimeDistributed
+        # Tomar último timestep y proyectar a horizon * quantiles
+        x = x[:, -1, :]  # (B, units)
         if self.forecast_horizon == 1:
-            # Solo predecir el siguiente paso: tomar último timestep
-            x = x[:, -1, :]  # (B, units)
             outputs = Dense(self.num_quantiles, name="quantile_output")(x)
         else:
-            # Predicción multi-horizonte
-            outputs = TimeDistributed(
-                Dense(self.num_quantiles), 
-                name="quantile_output"
+            x = Dense(
+                self.forecast_horizon * self.num_quantiles,
+                name="quantile_projection",
+            )(x)
+            outputs = Reshape(
+                (self.forecast_horizon, self.num_quantiles),
+                name="quantile_output",
             )(x)
         
         return outputs
     
-    def build_model(self):
-        """Construye el modelo TFT completo."""
-        inputs = Input(shape=(self.lookback_steps, self.n_features), name="past_inputs")
+    def _build_decoder_output(self, encoder_out, future_inputs):
+        """Decoder para predicción multi-horizonte con covariables futuras conocidas.
         
-        x = self._build_input_projection(inputs)
+        Combina el contexto del encoder (último timestep) con las features
+        futuras proyectadas para generar una predicción por cada paso del
+        horizonte de pronóstico.
+        
+        Args:
+            encoder_out: Salida del encoder (B, lookback_steps, units).
+            future_inputs: Features futuras conocidas (B, horizon, n_future_features).
+        
+        Returns:
+            Tensor de cuantiles (B, horizon, num_quantiles).
+        """
+        import keras.ops as ops
+        
+        # Contexto del encoder: último timestep
+        context = encoder_out[:, -1, :]  # (B, units)
+        context = Reshape((1, self.units))(context)  # (B, 1, units)
+        
+        # Proyectar features futuras a la dimensión del modelo
+        fut = Dense(self.units, name="future_projection")(future_inputs)  # (B, H, units)
+        
+        # Combinar: contexto del encoder + features futuras (broadcast)
+        decoder = ops.add(fut, context)  # (B, H, units)
+        
+        # GRN para refinamiento
+        decoder = GatedResidualNetwork(self.units, self.dropout_rate)(decoder)
+        
+        # Salida de cuantiles por timestep
+        outputs = TimeDistributed(
+            Dense(self.num_quantiles), name="quantile_output"
+        )(decoder)  # (B, H, num_quantiles)
+        
+        return outputs
+    
+    def build_model(self):
+        """Construye el modelo TFT completo.
+        
+        Si n_future_features > 0 y forecast_horizon > 1, construye un modelo
+        con dos entradas (past_inputs, future_inputs) y un decoder que combina
+        el contexto del encoder con las covariables futuras.
+        """
+        past_inputs = Input(shape=(self.lookback_steps, self.n_features), name="past_inputs")
+        
+        x = self._build_input_projection(past_inputs)
         x = self._build_grn_stack(x, self.num_grn_layers, "encoder_grn")
         x = self._build_temporal_processing(x)
         x = self._build_attention_block(x)
         x = self._build_grn_stack(x, 1, "post_attention_grn")
-
-        outputs = self._build_output_layer(x)
         
-        self.model = Model(inputs=inputs, outputs=outputs, name="TFT_Simplified")
+        if self.forecast_horizon > 1 and self.n_future_features > 0:
+            future_inputs = Input(
+                shape=(self.forecast_horizon, self.n_future_features),
+                name="future_inputs",
+            )
+            outputs = self._build_decoder_output(x, future_inputs)
+            self.model = Model(
+                inputs=[past_inputs, future_inputs],
+                outputs=outputs,
+                name="TFT_Simplified",
+            )
+        else:
+            outputs = self._build_output_layer(x)
+            self.model = Model(
+                inputs=past_inputs, outputs=outputs, name="TFT_Simplified"
+            )
+        
         return self.model
 
     @staticmethod
@@ -176,6 +235,7 @@ class TFTModel:
         target_col: str,
         lookback_steps: int,
         forecast_horizon: int = 1,
+        future_feature_cols: Optional[Iterable[str]] = None,
     ) -> Tuple[np.ndarray, np.ndarray]:
         """
         Convierte un DataFrame (ordenado por fecha) en (X, y) para TS supervised.
@@ -192,6 +252,15 @@ class TFTModel:
 
         data_x = df[feature_cols].to_numpy(dtype=np.float32)
         data_y = df[target_col].to_numpy(dtype=np.float32)
+
+        # Datos de features futuras (si se proporcionan)
+        future_cols = list(future_feature_cols or [])
+        data_future = None
+        if future_cols:
+            for c in future_cols:
+                if c not in df.columns:
+                    raise ValueError(f"future feature '{c}' no está en df.columns")
+            data_future = df[future_cols].to_numpy(dtype=np.float32)
 
         n_total = len(df)
         max_start = n_total - lookback_steps - forecast_horizon + 1
@@ -210,7 +279,16 @@ class TFTModel:
                 axis=0,
             ).astype(np.float32)
 
-        return X, y
+        # Features futuras (para decoder)
+        X_future = None
+        if data_future is not None and forecast_horizon > 1:
+            X_future = np.stack(
+                [data_future[i + lookback_steps : i + lookback_steps + forecast_horizon]
+                 for i in range(max_start)],
+                axis=0,
+            ).astype(np.float32)
+
+        return X, y, X_future
 
     @staticmethod
     def time_split(X: np.ndarray, y: np.ndarray, val_ratio: float = 0.1, test_ratio: float = 0.1):
@@ -296,7 +374,7 @@ class TFTModel:
             # Por defecto: todas las columnas numéricas excepto date
             feature_cols = [c for c in df.columns if c != "date"]
 
-        X, y = self.make_supervised_windows(
+        X, y, X_future = self.make_supervised_windows(
             df=df,
             feature_cols=feature_cols,
             target_col=target_col,
@@ -417,15 +495,11 @@ class TFTModel:
         if self.model is None:
             self.compile()
         
+        monitor = "val_loss" if X_val is not None else "loss"
+        
         callbacks = [
-            EarlyStopping(
-                monitor="val_loss" if X_val is not None else "loss",
-                patience=patience,
-                restore_best_weights=True,
-                verbose=1
-            ),
             ReduceLROnPlateau(
-                monitor="val_loss" if X_val is not None else "loss",
+                monitor=monitor,
                 factor=0.5,
                 patience=patience // 2,
                 min_lr=1e-6,
@@ -438,7 +512,7 @@ class TFTModel:
             callbacks.append(
                 ModelCheckpoint(
                     model_path,
-                    monitor="val_loss" if X_val is not None else "loss",
+                    monitor=monitor,
                     save_best_only=True,
                     verbose=1
                 )

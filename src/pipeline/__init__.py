@@ -28,6 +28,9 @@ from .core import (
     predict_future,
     finetune_model,
     train_model_from_scratch,
+    # Feature engineering
+    add_calendar_features,
+    forecast_arima_ipp,
     # Funciones de guardado
     save_predictions,
     plot_predictions,
@@ -61,6 +64,9 @@ __all__ = [
     "predict_future",
     "finetune_model",
     "train_model_from_scratch",
+    # Feature engineering
+    "add_calendar_features",
+    "forecast_arima_ipp",
     # Funciones de guardado
     "save_predictions",
     "plot_predictions",

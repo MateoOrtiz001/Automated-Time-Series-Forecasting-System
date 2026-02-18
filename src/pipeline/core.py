@@ -66,12 +66,12 @@ CONFIG = {
     # Modelo
     "base_model": "tft_base.keras",
     "lookback_steps": 12,
-    "forecast_horizon": 1,
+    "forecast_horizon": 6,
     "target_col": "Inflacion_total",
-    "future_months": 12,
+    "future_months": 6,
     
     # Fine-tuning
-    "finetune_interval_months": 6,
+    "finetune_interval_months": 3,
     "finetune_epochs": 50,
     "finetune_patience": 15,
     "finetune_batch_size": 32,
@@ -81,20 +81,48 @@ CONFIG = {
     "finetune_test_ratio": 0.0,     # Sin test en fine-tuning
     
     # Entrenamiento desde cero
-    "train_epochs": 200,
+    "train_epochs": 100,
     "train_batch_size": 64,
-    "train_patience": 40,
     "train_lr": 1e-3,
     
-    # Split ratios
-    "val_ratio": 0.1,
-    "test_ratio": 0.1,
+    # Hiperparámetros del modelo
+    "tft_units": 48,
+    "tft_heads": 2,
+    "tft_lstm_layers": 1,
+    "tft_grn_layers": 1,
+    "tft_dropout": 0.1,
+    
+    # Split ratios (solo train/test, sin validación)
+    "val_ratio": 0.0,
+    "test_ratio": 0.15,
     
     # Sistema de rotación (mantener solo N versiones de cada tipo de archivo)
     "max_data_versions": 2,
     "max_model_versions": 2,
     "max_prediction_versions": 2,
     "max_raw_versions": 2,
+    
+    # Clasificación de covariables para predicción
+    "future_known_cols": ["sin_month", "cos_month"],
+    "future_forecast_cols": {
+        "IPP": {"method": "holt_damped"},
+        "TRM": {"method": "holt_damped"},
+        "Brent": {"method": "holt_damped"},
+        "FAO": {"method": "holt_damped"},
+        "Tasa_interes_colocacion_total": {"method": "ses"},
+        "PIB_real_trimestral_2015_AE": {"method": "holt_damped_quarterly"},
+    },
+    "past_only_cols": [],
+    
+    # Features futuras para el decoder (orden importa)
+    "future_feature_cols": [
+        "sin_month", "cos_month", "IPP",
+        "TRM", "Brent", "FAO",
+        "Tasa_interes_colocacion_total", "PIB_real_trimestral_2015_AE",
+    ],
+    
+    # Pasos de pronóstico para covariables
+    "covariate_forecast_steps": 6,
 }
 
 # Descripciones de variables
@@ -106,7 +134,353 @@ VARIABLE_DESCRIPTIONS = {
     "TRM": "Tasa de cambio COP/USD",
     "Brent": "Precio del petróleo Brent (USD/barril)",
     "FAO": "Índice de precios de alimentos FAO",
+    "sin_month": "Componente sinusoidal del mes (estacionalidad)",
+    "cos_month": "Componente cosenoidal del mes (estacionalidad)",
 }
+
+
+# FEATURE ENGINEERING
+def add_calendar_features(df: pd.DataFrame) -> pd.DataFrame:
+    """Agrega features de calendario determinísticos (conocidos a futuro).
+    
+    Añade codificación cíclica sin/cos del mes del año, lo que permite al
+    modelo capturar patrones estacionales sin discontinuidades.
+    
+    Args:
+        df: DataFrame con columna 'date' (datetime).
+    
+    Returns:
+        DataFrame con columnas 'sin_month' y 'cos_month' añadidas.
+    """
+    df = df.copy()
+    month = df["date"].dt.month
+    df["sin_month"] = np.sin(2 * np.pi * month / 12).astype(np.float32)
+    df["cos_month"] = np.cos(2 * np.pi * month / 12).astype(np.float32)
+    return df
+
+
+def forecast_arima_ipp(
+    series: pd.Series,
+    n_steps: int = 6,
+    order: tuple = (1, 1, 1),
+    logger: logging.Logger = None,
+) -> np.ndarray:
+    """Genera pronóstico para IPP (covariable futura pronosticada).
+    
+    Usa Holt exponential smoothing con tendencia amortiguada, adecuado para
+    series con tendencia como el IPP (índice de precios que sube gradualmente).
+    
+    Args:
+        series: Serie histórica de IPP.
+        n_steps: Número de meses a pronosticar.
+        order: Reservado para compatibilidad (no se usa actualmente).
+        logger: Logger para registrar operaciones.
+    
+    Returns:
+        Array con n_steps valores pronosticados.
+    """
+    from statsmodels.tsa.holtwinters import Holt
+    
+    try:
+        model = Holt(series.values.astype(np.float64), damped_trend=True)
+        fitted = model.fit()
+        forecast = fitted.forecast(n_steps)
+        
+        if logger:
+            logger.info(f"  Holt (damped trend) para IPP: AIC={fitted.aic:.2f}")
+            for i, val in enumerate(forecast):
+                logger.info(f"    Mes +{i+1}: IPP={val:.2f}")
+        
+        return np.array(forecast, dtype=np.float32)
+    
+    except Exception as e:
+        if logger:
+            logger.warning(f"  Pronóstico IPP falló: {e}. Usando último valor conocido.")
+        last_val = float(series.iloc[-1])
+        return np.full(n_steps, last_val, dtype=np.float32)
+
+
+# PRONÓSTICO DE COVARIABLES EXTERNAS
+def forecast_covariate(
+    series: pd.Series,
+    col_name: str,
+    n_steps: int = 6,
+    logger: logging.Logger = None,
+) -> np.ndarray:
+    """Genera pronóstico para una covariable usando el método más adecuado.
+    
+    Métodos por variable:
+    - IPP, TRM, Brent, FAO: Holt exponential smoothing con tendencia amortiguada.
+    - Tasa_interes_colocacion_total: Simple Exponential Smoothing (tasa sticky).
+    - PIB_real_trimestral_2015_AE: Holt damped sobre datos trimestrales únicos,
+      expandidos de vuelta a frecuencia mensual.
+    
+    Args:
+        series: Serie histórica de la covariable.
+        col_name: Nombre de la columna.
+        n_steps: Número de meses a pronosticar.
+        logger: Logger para registrar operaciones.
+    
+    Returns:
+        Array con n_steps valores pronosticados.
+    """
+    cfg = CONFIG.get("future_forecast_cols", {}).get(col_name, {})
+    method = cfg.get("method", "holt_damped")
+    
+    try:
+        if method == "holt_damped_quarterly":
+            return _forecast_pib_quarterly(series, n_steps, logger)
+        elif method == "ses":
+            return _forecast_ses(series, n_steps, col_name, logger)
+        else:  # holt_damped (default)
+            return _forecast_holt_damped(series, n_steps, col_name, logger)
+    except Exception as e:
+        if logger:
+            logger.warning(f"  Pronóstico {col_name} falló: {e}. Usando último valor conocido.")
+        return np.full(n_steps, float(series.iloc[-1]), dtype=np.float32)
+
+
+def _forecast_holt_damped(
+    series: pd.Series,
+    n_steps: int,
+    col_name: str,
+    logger: logging.Logger = None,
+) -> np.ndarray:
+    """Holt exponential smoothing con tendencia amortiguada.
+    
+    Adecuado para series con tendencia que se espera se amortigüe a largo plazo:
+    IPP, TRM, Brent, FAO.
+    """
+    from statsmodels.tsa.holtwinters import Holt
+    
+    model = Holt(series.values.astype(np.float64), damped_trend=True)
+    fitted = model.fit()
+    forecast = fitted.forecast(n_steps)
+    
+    if logger:
+        logger.info(f"  Holt (damped) para {col_name}: AIC={fitted.aic:.2f}")
+    
+    return np.array(forecast, dtype=np.float32)
+
+
+def _forecast_ses(
+    series: pd.Series,
+    n_steps: int,
+    col_name: str,
+    logger: logging.Logger = None,
+) -> np.ndarray:
+    """Simple Exponential Smoothing.
+    
+    Adecuado para tasas de política monetaria (series sticky, sin tendencia marcada).
+    La predicción converge al nivel suavizado.
+    """
+    from statsmodels.tsa.holtwinters import SimpleExpSmoothing
+    
+    model = SimpleExpSmoothing(series.values.astype(np.float64))
+    fitted = model.fit()
+    forecast = fitted.forecast(n_steps)
+    
+    if logger:
+        logger.info(f"  SES para {col_name}: AIC={fitted.aic:.2f}")
+    
+    return np.array(forecast, dtype=np.float32)
+
+
+def _forecast_pib_quarterly(
+    series: pd.Series,
+    n_steps: int,
+    logger: logging.Logger = None,
+) -> np.ndarray:
+    """Pronóstico de PIB (datos trimestrales repetidos mensualmente).
+    
+    Extrae los valores trimestrales únicos, pronostica con Holt damped,
+    y expande de vuelta a frecuencia mensual repitiendo cada valor 3 veces.
+    """
+    from statsmodels.tsa.holtwinters import Holt
+    
+    # Extraer valores trimestrales únicos (cambios de valor)
+    unique_mask = series.ne(series.shift())
+    quarterly = series[unique_mask].reset_index(drop=True)
+    
+    # Trimestres necesarios para cubrir n_steps meses
+    n_quarters = (n_steps + 2) // 3
+    
+    model = Holt(quarterly.values.astype(np.float64), damped_trend=True)
+    fitted = model.fit()
+    q_forecast = fitted.forecast(n_quarters)
+    
+    # Expandir a mensual (repetir cada trimestre 3 veces)
+    monthly = np.repeat(q_forecast, 3)[:n_steps]
+    
+    if logger:
+        logger.info(f"  Holt (damped, quarterly→monthly) para PIB: AIC={fitted.aic:.2f}")
+    
+    return monthly.astype(np.float32)
+
+
+def forecast_all_covariates(
+    df: pd.DataFrame,
+    n_steps: int = None,
+    logger: logging.Logger = None,
+) -> Dict[str, np.ndarray]:
+    """Pronostica todas las covariables futuras configuradas.
+    
+    Itera sobre CONFIG['future_forecast_cols'] y genera un pronóstico
+    para cada covariable usando el método configurado.
+    
+    Args:
+        df: DataFrame con datos históricos.
+        n_steps: Meses a pronosticar. Por defecto usa CONFIG['covariate_forecast_steps'].
+        logger: Logger.
+    
+    Returns:
+        Dict {nombre_covariable: array de pronósticos}.
+    """
+    n_steps = n_steps or CONFIG["covariate_forecast_steps"]
+    forecasts = {}
+    
+    forecast_cols = CONFIG.get("future_forecast_cols", {})
+    
+    if logger:
+        logger.info(
+            f"\n[COVARIATE FORECASTS] Pronosticando {len(forecast_cols)} "
+            f"covariables para {n_steps} meses..."
+        )
+    
+    for col_name in forecast_cols:
+        if col_name not in df.columns:
+            if logger:
+                logger.warning(f"  ⚠ Columna '{col_name}' no encontrada en datos. Saltando.")
+            continue
+        
+        forecast = forecast_covariate(df[col_name], col_name, n_steps, logger)
+        forecasts[col_name] = forecast
+        
+        if logger:
+            for i, val in enumerate(forecast):
+                logger.info(f"    Mes +{i+1}: {col_name}={val:.2f}")
+    
+    return forecasts
+
+
+# PERSISTENCIA DE ESTADÍSTICAS DE ESTANDARIZACIÓN
+SCALER_STATS_FILENAME = "scaler_stats.npz"
+
+
+def save_scaler_stats(
+    mean: np.ndarray,
+    std: np.ndarray,
+    mean_f: np.ndarray = None,
+    std_f: np.ndarray = None,
+    logger: logging.Logger = None,
+) -> None:
+    """Guarda las estadísticas de estandarización (mean/std) en disco.
+    
+    Se guardan junto al modelo para garantizar que la misma normalización
+    usada en entrenamiento se aplique durante la predicción.
+    
+    Se guarda en dos ubicaciones:
+    - CONFIG['models_dir'] (models/) para el modelo base.
+    - CONFIG['pipeline_models_dir'] (misc/models/) para fine-tuning y deploy.
+    """
+    data = {"mean": mean, "std": std}
+    if mean_f is not None:
+        data["mean_f"] = mean_f
+    if std_f is not None:
+        data["std_f"] = std_f
+    
+    for save_dir in [CONFIG["models_dir"], CONFIG["pipeline_models_dir"]]:
+        save_dir.mkdir(parents=True, exist_ok=True)
+        path = save_dir / SCALER_STATS_FILENAME
+        np.savez(path, **data)
+    
+    if logger:
+        logger.info(f"  Scaler stats guardadas en: models/ y misc/models/")
+
+
+def load_scaler_stats(
+    logger: logging.Logger = None,
+) -> Tuple[np.ndarray, np.ndarray, Optional[np.ndarray], Optional[np.ndarray]]:
+    """Carga las estadísticas de estandarización guardadas.
+    
+    Busca en: misc/models/ → models/ (en ese orden de prioridad).
+    
+    Returns:
+        (mean, std, mean_f, std_f). mean_f y std_f pueden ser None.
+    
+    Raises:
+        FileNotFoundError: Si no se encuentra el archivo en ninguna ubicación.
+    """
+    search_dirs = [
+        CONFIG["pipeline_models_dir"],
+        CONFIG["models_dir"],
+    ]
+    
+    for d in search_dirs:
+        path = d / SCALER_STATS_FILENAME
+        if path.exists():
+            data = np.load(path)
+            mean = data["mean"]
+            std = data["std"]
+            mean_f = data["mean_f"] if "mean_f" in data else None
+            std_f = data["std_f"] if "std_f" in data else None
+            if logger:
+                logger.info(f"  Scaler stats cargadas desde: {path}")
+            return mean, std, mean_f, std_f
+    
+    raise FileNotFoundError(
+        f"No se encontró {SCALER_STATS_FILENAME} en: "
+        + ", ".join(str(d) for d in search_dirs)
+    )
+
+
+def get_scaler_stats(
+    df: pd.DataFrame,
+    feature_cols: List[str],
+    logger: logging.Logger = None,
+) -> Tuple[np.ndarray, np.ndarray, Optional[np.ndarray], Optional[np.ndarray]]:
+    """Obtiene las estadísticas de estandarización.
+    
+    Intenta cargar stats guardadas primero (generadas durante entrenamiento).
+    Si no existen, las calcula del split actual y las guarda.
+    
+    Args:
+        df: DataFrame con datos históricos (con calendar features).
+        feature_cols: Lista de columnas de features.
+        logger: Logger (puede ser None).
+    
+    Returns:
+        (mean, std, mean_f, std_f).
+    """
+    try:
+        return load_scaler_stats(logger)
+    except FileNotFoundError:
+        if logger:
+            logger.warning("  Stats no encontradas en disco. Calculando desde datos actuales...")
+        
+        future_feature_cols = CONFIG.get("future_feature_cols", [])
+        X, _, X_future = TFTModel.make_supervised_windows(
+            df=df,
+            feature_cols=feature_cols,
+            target_col=CONFIG["target_col"],
+            lookback_steps=CONFIG["lookback_steps"],
+            forecast_horizon=CONFIG["forecast_horizon"],
+            future_feature_cols=future_feature_cols if future_feature_cols else None,
+        )
+        
+        n = len(X)
+        n_test = int(n * CONFIG["test_ratio"])
+        n_train = n - n_test
+        
+        _, _, _, mean, std = TFTModel.standardize_from_train(X[:n_train])
+        
+        mean_f, std_f = None, None
+        if X_future is not None:
+            _, _, _, mean_f, std_f = TFTModel.standardize_from_train(X_future[:n_train])
+        
+        save_scaler_stats(mean, std, mean_f, std_f, logger=logger)
+        
+        return mean, std, mean_f, std_f
 
 
 # LOGGING
@@ -487,73 +861,106 @@ def download_all_data(logger: logging.Logger) -> bool:
 def load_model(logger: logging.Logger, state: PipelineState) -> Tuple[TFTModel, str]:
     """Carga el modelo más reciente (base o fine-tuned)."""
     models_dir = CONFIG["pipeline_models_dir"]
-    
+    root_models_dir = CONFIG["models_dir"]
+
     current_model = state.state["current_model"]
-    model_path = models_dir / current_model
     
-    if not model_path.exists():
-        model_path = models_dir / CONFIG["base_model"]
-        if not model_path.exists():
-            raise FileNotFoundError(f"No se encontró el modelo base en {model_path}")
-    
-    logger.info(f"Cargando modelo: {model_path.name}")
-    
-    # Cargar datos para obtener n_features
+    # Cargar datos para obtener n_features (incluye calendar features)
     df = TFTModel.load_latest_proc_csv(CONFIG["data_proc_dir"])
     df = df.dropna().reset_index(drop=True)
+    df = add_calendar_features(df)
     feature_cols = [c for c in df.columns if c != "date"]
     n_features = len(feature_cols)
+    future_feature_cols = CONFIG.get("future_feature_cols", [])
     
     # Crear instancia del modelo
     tft = TFTModel(
         lookback_steps=CONFIG["lookback_steps"],
         forecast_horizon=CONFIG["forecast_horizon"],
         n_features=n_features,
-        units=74,
-        num_heads=2,
-        num_lstm_layers=1,
-        num_grn_layers=2,
-        dropout_rate=0.1,
+        n_future_features=len(future_feature_cols),
+        units=CONFIG["tft_units"],
+        num_heads=CONFIG["tft_heads"],
+        num_lstm_layers=CONFIG["tft_lstm_layers"],
+        num_grn_layers=CONFIG["tft_grn_layers"],
+        dropout_rate=CONFIG["tft_dropout"],
         num_quantiles=3,
     )
     
-    # Construir y cargar pesos
-    tft.build_model()
-    tft.model.load_weights(str(model_path))
+    # Probar candidatos en orden de preferencia con fallback robusto
+    candidate_paths: List[Path] = []
+    for candidate in [
+        models_dir / current_model,
+        root_models_dir / current_model,
+        models_dir / CONFIG["base_model"],
+        root_models_dir / "tft_best.keras",
+    ]:
+        if candidate.exists() and candidate not in candidate_paths:
+            candidate_paths.append(candidate)
+
+    if not candidate_paths:
+        raise FileNotFoundError(
+            "No se encontró ningún modelo utilizable en "
+            f"{models_dir} ni {root_models_dir}"
+        )
+
+    load_errors = []
+    for model_path in candidate_paths:
+        try:
+            logger.info(f"Cargando modelo: {model_path.name}")
+            tft.build_model()
+            tft.model.load_weights(str(model_path))
+
+            if state.state.get("current_model") != model_path.name:
+                state.update("current_model", model_path.name)
+                logger.info(
+                    f"Modelo actual ajustado automáticamente a: {model_path.name}"
+                )
+
+            return tft, model_path.name
+        except Exception as exc:
+            load_errors.append(f"{model_path.name}: {exc}")
+            logger.warning(
+                f"No se pudo cargar {model_path.name}; probando fallback."
+            )
+
+    raise RuntimeError(
+        "No fue posible cargar ningún modelo compatible. "
+        f"Errores: {' | '.join(load_errors)}"
+    )
+
+
+def prepare_data(logger: logging.Logger) -> Tuple[pd.DataFrame, List[str]]:
+    """Prepara los datos para predicción/entrenamiento.
     
-    return tft, model_path.name
-
-
-def prepare_data(logger: logging.Logger) -> Tuple[pd.DataFrame, List, np.ndarray, np.ndarray]:
-    """Prepara los datos para predicción/entrenamiento."""
+    Carga el CSV procesado más reciente, elimina NaN, y agrega features
+    de calendario (sin_month, cos_month).
+    
+    Las estadísticas de estandarización se obtienen por separado
+    mediante get_scaler_stats() o se computan durante el entrenamiento.
+    
+    Returns:
+        Tupla (df, feature_cols).
+    """
     df = TFTModel.load_latest_proc_csv(CONFIG["data_proc_dir"])
     df = df.dropna().reset_index(drop=True)
     
+    # Agregar features de calendario (conocidos a futuro)
+    df = add_calendar_features(df)
+    
     feature_cols = [c for c in df.columns if c != "date"]
+    future_feature_cols = CONFIG.get("future_feature_cols", [])
     
     logger.info(f"Dataset cargado: {len(df)} filas")
     logger.info(f"Rango: {df['date'].min()} → {df['date'].max()}")
-    logger.info(f"Features ({len(feature_cols)}):")
+    logger.info(f"Features pasadas ({len(feature_cols)}):")
     for col in feature_cols:
         desc = VARIABLE_DESCRIPTIONS.get(col, col)
         logger.info(f"   • {col}: {desc}")
+    if future_feature_cols:
+        logger.info(f"Features futuras (decoder): {future_feature_cols}")
     
-    # Calcular media y std para estandarización
-    X, y = TFTModel.make_supervised_windows(
-        df=df,
-        feature_cols=feature_cols,
-        target_col=CONFIG["target_col"],
-        lookback_steps=CONFIG["lookback_steps"],
-        forecast_horizon=CONFIG["forecast_horizon"],
-    )
-    
-    X_train, _, X_val, _, X_test, _ = TFTModel.time_split(
-        X, y, val_ratio=CONFIG["val_ratio"], test_ratio=CONFIG["test_ratio"]
-    )
-    
-    _, _, _, mean, std = TFTModel.standardize_from_train(X_train, X_val, X_test)
-    
-    return df, feature_cols, mean, std
+    return df, feature_cols
 
 
 def predict_future(
@@ -563,51 +970,91 @@ def predict_future(
     mean: np.ndarray,
     std: np.ndarray,
     logger: logging.Logger,
-    n_months: int = 12,
+    n_months: int = None,
+    covariate_forecasts: Dict[str, np.ndarray] = None,
+    mean_f: np.ndarray = None,
+    std_f: np.ndarray = None,
 ) -> pd.DataFrame:
-    """Realiza predicciones iterativas para los próximos n_months meses."""
-    logger.info(f"\nPrediciendo {n_months} meses futuros...")
+    """Realiza predicción directa de N meses con decoder de covariables futuras.
     
+    El modelo recibe dos entradas:
+    - past_inputs: ventana de lookback con todas las features estandarizadas.
+    - future_inputs: covariables futuras conocidas/pronosticadas estandarizadas
+      con estadísticas guardadas del entrenamiento.
+    
+    Args:
+        model: Modelo TFT cargado (con decoder).
+        df: DataFrame con datos históricos (ya con calendar features).
+        feature_cols: Lista de columnas de features (en orden del modelo).
+        mean: Media para estandarización del lookback (guardada del train).
+        std: Desviación estándar del lookback (guardada del train).
+        logger: Logger.
+        n_months: Meses a predecir. Por defecto usa CONFIG['future_months'].
+        covariate_forecasts: Dict con pronósticos de covariables {nombre: array}.
+        mean_f: Media para estandarización de features futuras (guardada del train).
+        std_f: Desviación estándar de features futuras (guardada del train).
+    """
+    n_months = n_months or CONFIG["future_months"]
+    future_feature_cols = CONFIG.get("future_feature_cols", [])
+    covariate_forecasts = covariate_forecasts or {}
+    
+    logger.info(f"\nPrediciendo {n_months} meses futuros (ventana fija)...")
+    logger.info(f"  Features futuras (decoder): {future_feature_cols}")
+    
+    # Preparar entrada del encoder (lookback)
     data_features = df[feature_cols].to_numpy(dtype=np.float32)
-    target_idx = feature_cols.index(CONFIG["target_col"])
-    
     current_window = data_features[-CONFIG["lookback_steps"]:].copy()
     current_window_std = ((current_window - mean) / std).astype(np.float32)
+    X_past = current_window_std[np.newaxis, :, :]  # (1, lookback, n_features)
     
-    predictions = []
+    # Preparar entrada del decoder (features futuras)
     last_date = df["date"].iloc[-1]
     future_dates = pd.date_range(
         start=last_date + pd.DateOffset(months=1),
         periods=n_months,
-        freq="MS"
+        freq="MS",
     )
     
+    # Construir features futuras
+    X_future = np.zeros((1, n_months, len(future_feature_cols)), dtype=np.float32)
+    
+    for i, date in enumerate(future_dates):
+        month = date.month
+        for j, col in enumerate(future_feature_cols):
+            if col == "sin_month":
+                X_future[0, i, j] = np.sin(2 * np.pi * month / 12)
+            elif col == "cos_month":
+                X_future[0, i, j] = np.cos(2 * np.pi * month / 12)
+            elif col in covariate_forecasts and i < len(covariate_forecasts[col]):
+                X_future[0, i, j] = covariate_forecasts[col][i]
+            else:
+                # Fallback: último valor conocido
+                X_future[0, i, j] = float(df[col].iloc[-1])
+    
+    # Estandarizar features futuras
+    if mean_f is not None and std_f is not None:
+        X_future = ((X_future - mean_f) / std_f).astype(np.float32)
+    
+    # Predicción directa (una sola pasada por el modelo)
+    pred_result = model.predict([X_past, X_future])
+    
+    # Extraer predicciones: (1, horizon, quantiles) → (horizon,)
+    median = np.ravel(pred_result.get("median", pred_result["predictions"][..., 1]))
+    lower = np.ravel(pred_result["lower"]) if "lower" in pred_result else [None] * n_months
+    upper = np.ravel(pred_result["upper"]) if "upper" in pred_result else [None] * n_months
+    
+    predictions = []
     for i in range(n_months):
-        X_input = current_window_std[np.newaxis, :, :]
-        
-        pred_result = model.predict(X_input)
-        pred_value = pred_result.get("median", pred_result.get("predictions"))
-        pred_arr = np.ravel(pred_value)
-        pred_value = float(pred_arr[1] if pred_arr.size >= 3 else pred_arr[0])
-        
-        lower = float(np.ravel(pred_result["lower"])[0]) if "lower" in pred_result else None
-        upper = float(np.ravel(pred_result["upper"])[0]) if "upper" in pred_result else None
-        
         predictions.append({
             "date": future_dates[i],
-            "prediction": pred_value,
-            "lower": lower,
-            "upper": upper,
+            "prediction": float(median[i]),
+            "lower": float(lower[i]) if lower[i] is not None else None,
+            "upper": float(upper[i]) if upper[i] is not None else None,
         })
-        
-        new_row = current_window[-1].copy()
-        new_row[target_idx] = pred_value
-        current_window = np.vstack([current_window[1:], new_row])
-        current_window_std = ((current_window - mean) / std).astype(np.float32)
     
     pred_df = pd.DataFrame(predictions)
     
-    logger.info(f"\nPredicciones ({CONFIG['target_col']}):")
+    logger.info(f"\nPredicciones ({CONFIG['target_col']}) — ventana fija de {n_months} meses:")
     for _, row in pred_df.iterrows():
         ci = f" [{row['lower']:.2f}, {row['upper']:.2f}]" if row['lower'] else ""
         logger.info(f"  {row['date'].strftime('%Y-%m')}: {row['prediction']:.2f}%{ci}")
@@ -627,17 +1074,15 @@ def finetune_model(
     
     Estrategia:
     - Ventana móvil: usa solo los últimos N meses (configurable).
-    - Split: val al INICIO de la ventana (para early stopping), train con el resto.
-    - Sin test: los datos más recientes SÍ participan en el entrenamiento.
-    
-    Para evaluación del modelo fine-tuneado, usar backtest walk-forward por separado.
+    - Sin early stopping: entrena por épocas fijas.
+    - Todos los datos de la ventana se usan para entrenamiento.
     """
     logger.info("\n" + "=" * 60)
     logger.info("INICIANDO FINE-TUNING DEL MODELO")
     logger.info("=" * 60)
     
     # --- Ventana móvil: recortar a los últimos N meses ---
-    window_months = CONFIG.get("finetune_window_months", 120)  # default 10 años
+    window_months = CONFIG.get("finetune_window_months", 120)
     original_len = len(df)
     
     if len(df) > window_months:
@@ -646,26 +1091,35 @@ def finetune_model(
     else:
         logger.info(f"Usando todos los datos disponibles ({len(df)} meses, menor que ventana de {window_months})")
     
-    X, y = TFTModel.make_supervised_windows(
+    X, y, X_future = TFTModel.make_supervised_windows(
         df=df,
         feature_cols=feature_cols,
         target_col=CONFIG["target_col"],
         lookback_steps=CONFIG["lookback_steps"],
         forecast_horizon=CONFIG["forecast_horizon"],
+        future_feature_cols=CONFIG.get("future_feature_cols"),
     )
     
-    # --- Split para fine-tuning: val al inicio, sin test ---
-    val_ratio = CONFIG.get("finetune_val_ratio", 0.1)
-    X_train, y_train, X_val, y_val = TFTModel.time_split_finetune(
-        X, y, val_ratio=val_ratio
-    )
+    # Sin split: todos los datos para entrenamiento (sin early stopping)
+    X_train, y_train = X, y
     
-    # Estandarizar (nota: val está al inicio pero estandarizamos con train para consistencia)
-    X_train, X_val, _, mean, std = TFTModel.standardize_from_train(X_train, X_val, None)
+    # Estandarizar features pasadas
+    X_train_s, _, _, mean, std = TFTModel.standardize_from_train(X_train, None, None)
     
-    logger.info(f"Train: {X_train.shape[0]} samples (datos más recientes incluidos)")
-    logger.info(f"Val: {X_val.shape[0]} samples (del inicio de la ventana, para early stopping)")
-    logger.info(f"Test: 0 samples (sin test en fine-tuning; usar backtest para evaluación)")
+    # Estandarizar features futuras
+    train_input = X_train_s
+    mean_f, std_f = None, None
+    if X_future is not None:
+        Xf_train_s, _, _, mean_f, std_f = TFTModel.standardize_from_train(
+            X_future, None, None
+        )
+        train_input = [X_train_s, Xf_train_s]
+    
+    # Guardar estadísticas de estandarización
+    save_scaler_stats(mean, std, mean_f, std_f, logger=logger)
+    
+    logger.info(f"Train: {len(X_train)} samples (todos los datos de la ventana)")
+    logger.info(f"Early stopping: deshabilitado")
     
     timestamp = datetime.now().strftime("%Y%m")
     finetune_count = state.state["finetune_count"] + 1
@@ -679,10 +1133,10 @@ def finetune_model(
     logger.info(f"\nEntrenando {CONFIG['finetune_epochs']} épocas con lr={CONFIG['finetune_lr']}...")
     
     history = model.fit(
-        X_train=X_train,
+        X_train=train_input,
         y_train=y_train,
-        X_val=X_val,
-        y_val=y_val,
+        X_val=None,
+        y_val=None,
         epochs=CONFIG["finetune_epochs"],
         batch_size=CONFIG["finetune_batch_size"],
         patience=CONFIG["finetune_patience"],
@@ -690,21 +1144,18 @@ def finetune_model(
         model_path=str(new_model_path),
     )
     
+    # Evaluación in-sample
     logger.info("\nEvaluación post fine-tuning (in-sample):")
-    logger.info("  Nota: Sin test set. Para evaluación out-of-sample usar backtest walk-forward.")
+    preds = model.predict(train_input)
+    y_pred = preds.get("median", preds.get("predictions"))
+    y_pred = np.ravel(y_pred)
+    y_true_flat = np.ravel(y_train)
+    if y_pred.size > y_true_flat.size:
+        y_pred = y_pred[:y_true_flat.size]
     
-    for name, X, y_true in [("Train", X_train, y_train), ("Val", X_val, y_val)]:
-        if X is None or len(X) == 0:
-            continue
-        preds = model.predict(X)
-        y_pred = preds.get("median", preds.get("predictions"))
-        y_pred = np.ravel(y_pred)
-        if y_pred.size >= 3 * len(y_true):
-            y_pred = y_pred.reshape(-1, 3)[:, 1]
-        
-        mae = np.mean(np.abs(y_true - y_pred))
-        rmse = np.sqrt(np.mean((y_true - y_pred) ** 2))
-        logger.info(f"  {name}: MAE={mae:.4f}, RMSE={rmse:.4f}")
+    mae = np.mean(np.abs(y_true_flat - y_pred))
+    rmse = np.sqrt(np.mean((y_true_flat - y_pred) ** 2))
+    logger.info(f"  Train: MAE={mae:.4f}, RMSE={rmse:.4f}")
     
     state.update("last_finetune", datetime.now().isoformat())
     state.update("finetune_count", finetune_count)
@@ -719,7 +1170,14 @@ def train_model_from_scratch(
     logger: logging.Logger,
     epochs: int = None,
 ) -> Tuple[TFTModel, str]:
-    """Entrena un modelo TFT desde cero."""
+    """Entrena un modelo TFT desde cero con decoder para covariables futuras.
+    
+    Configuración:
+    - Split 85/15 train/test (sin validación).
+    - Sin early stopping.
+    - Todas las covariables futuras alimentan el decoder.
+    - 100 épocas, units=48, heads=2, 1 capa GRN.
+    """
     logger.info("\n" + "=" * 60)
     logger.info("ENTRENAMIENTO DE MODELO DESDE CERO")
     logger.info("=" * 60)
@@ -729,34 +1187,59 @@ def train_model_from_scratch(
     models_dir.mkdir(parents=True, exist_ok=True)
     
     # Cargar y preparar datos
-    df, feature_cols, mean, std = prepare_data(logger)
+    df, feature_cols = prepare_data(logger)
+    future_feature_cols = CONFIG.get("future_feature_cols", [])
     
-    X, y = TFTModel.make_supervised_windows(
+    X, y, X_future = TFTModel.make_supervised_windows(
         df=df,
         feature_cols=feature_cols,
         target_col=CONFIG["target_col"],
         lookback_steps=CONFIG["lookback_steps"],
         forecast_horizon=CONFIG["forecast_horizon"],
+        future_feature_cols=future_feature_cols if future_feature_cols else None,
     )
     
-    X_train, y_train, X_val, y_val, X_test, y_test = TFTModel.time_split(
-        X, y, val_ratio=CONFIG["val_ratio"], test_ratio=CONFIG["test_ratio"]
-    )
+    # Split 85/15 (sin validación)
+    n = len(X)
+    n_test = int(n * CONFIG["test_ratio"])
+    n_train = n - n_test
     
-    X_train, X_val, X_test, _, _ = TFTModel.standardize_from_train(X_train, X_val, X_test)
+    X_train, y_train = X[:n_train], y[:n_train]
+    X_test, y_test = X[n_train:], y[n_train:]
     
-    logger.info(f"Train: {len(X_train)}, Val: {len(X_val) if X_val is not None else 0}, Test: {len(X_test) if X_test is not None else 0}")
+    # Estandarizar features pasadas
+    X_train_s, _, X_test_s, mean, std = TFTModel.standardize_from_train(X_train, None, X_test)
+    
+    # Preparar inputs (con features futuras si hay decoder)
+    train_input = X_train_s
+    test_input = X_test_s
+    
+    mean_f, std_f = None, None
+    if X_future is not None:
+        Xf_train, Xf_test = X_future[:n_train], X_future[n_train:]
+        Xf_train_s, _, Xf_test_s, mean_f, std_f = TFTModel.standardize_from_train(Xf_train, None, Xf_test)
+        train_input = [X_train_s, Xf_train_s]
+        test_input = [X_test_s, Xf_test_s]
+    
+    # Guardar estadísticas de estandarización
+    save_scaler_stats(mean, std, mean_f, std_f, logger=logger)
+    
+    logger.info(f"Train: {n_train}, Test: {n_test} (split {100-int(CONFIG['test_ratio']*100)}/{int(CONFIG['test_ratio']*100)})")
+    logger.info(f"Scaler stats guardadas para uso en predicción.")
+    logger.info(f"Validación: deshabilitada")
+    logger.info(f"Early stopping: deshabilitado")
     
     # Crear y entrenar modelo
     tft = TFTModel(
         lookback_steps=CONFIG["lookback_steps"],
         forecast_horizon=CONFIG["forecast_horizon"],
         n_features=len(feature_cols),
-        units=74,
-        num_heads=2,
-        num_lstm_layers=1,
-        num_grn_layers=2,
-        dropout_rate=0.1,
+        n_future_features=len(future_feature_cols) if future_feature_cols else 0,
+        units=CONFIG["tft_units"],
+        num_heads=CONFIG["tft_heads"],
+        num_lstm_layers=CONFIG["tft_lstm_layers"],
+        num_grn_layers=CONFIG["tft_grn_layers"],
+        dropout_rate=CONFIG["tft_dropout"],
         num_quantiles=3,
     )
     
@@ -764,16 +1247,28 @@ def train_model_from_scratch(
     
     model_path = models_dir / "tft_best.keras"
     tft.fit(
-        X_train=X_train,
+        X_train=train_input,
         y_train=y_train,
-        X_val=X_val,
-        y_val=y_val,
+        X_val=None,
+        y_val=None,
         epochs=epochs,
         batch_size=CONFIG["train_batch_size"],
-        patience=CONFIG["train_patience"],
         save_best=True,
         model_path=str(model_path),
     )
+    
+    # Evaluación en test
+    logger.info("\nEvaluación en test set:")
+    preds = tft.predict(test_input)
+    y_pred = preds.get("median", preds.get("predictions"))
+    y_pred = np.ravel(y_pred)
+    y_test_flat = np.ravel(y_test)
+    if y_pred.size > y_test_flat.size:
+        y_pred = y_pred[:y_test_flat.size]
+    
+    mae = np.mean(np.abs(y_test_flat - y_pred))
+    rmse = np.sqrt(np.mean((y_test_flat - y_pred) ** 2))
+    logger.info(f"  Test MAE={mae:.4f}, RMSE={rmse:.4f}")
     
     logger.info(f"✓ Modelo guardado: {model_path}")
     
@@ -918,7 +1413,8 @@ def run_pipeline(
     if predict or force_finetune:
         try:
             model, model_name = load_model(logger, state)
-            df, feature_cols, mean, std = prepare_data(logger)
+            df, feature_cols = prepare_data(logger)
+            mean, std, mean_f, std_f = get_scaler_stats(df, feature_cols, logger)
         except Exception as e:
             logger.error(f"Error cargando modelo/datos: {e}")
             results["errors"].append(str(e))
@@ -932,7 +1428,8 @@ def run_pipeline(
             model = finetune_model(model, df, feature_cols, logger, state)
             model_name = state.state["current_model"]
             
-            df, feature_cols, mean, std = prepare_data(logger)
+            df, feature_cols = prepare_data(logger)
+            mean, std, mean_f, std_f = get_scaler_stats(df, feature_cols, logger)
             
             if cleanup:
                 logger.info("\n[POST-FINETUNE] Limpiando modelos antiguos...")
@@ -944,7 +1441,15 @@ def run_pipeline(
     # Predicción
     if predict:
         try:
-            pred_df = predict_future(model, df, feature_cols, mean, std, logger)
+            # Pronosticar todas las covariables futuras
+            covariate_forecasts = forecast_all_covariates(df, logger=logger)
+            
+            pred_df = predict_future(
+                model, df, feature_cols, mean, std, logger,
+                covariate_forecasts=covariate_forecasts,
+                mean_f=mean_f,
+                std_f=std_f,
+            )
             
             csv_path = save_predictions(pred_df, model_name, logger)
             plot_path = plot_predictions(df, pred_df, model_name, logger)
