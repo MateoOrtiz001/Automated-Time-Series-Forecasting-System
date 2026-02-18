@@ -98,8 +98,8 @@ class GatedLinearUnit(Layer):
         return self.linear(inputs) * self.sigmoid(inputs)
 
     # Remove build warnings
-    def build(self):
-        self.built = True
+    def build(self, input_shape):
+        super().build(input_shape)
 
 
 class GatedResidualNetwork(Layer):
@@ -124,8 +124,8 @@ class GatedResidualNetwork(Layer):
         return x
 
     # Remove build warnings
-    def build(self):
-        self.built = True
+    def build(self, input_shape):
+        super().build(input_shape)
 
 
 class GateAddNorm(Layer):

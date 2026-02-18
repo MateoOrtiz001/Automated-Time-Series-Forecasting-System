@@ -2,7 +2,8 @@ import tensorflow as tf
 import keras
 from tensorflow.keras.layers import (
     Layer, Dense, Add, Multiply, LayerNormalization, 
-    LSTM, Input, Dropout, TimeDistributed, Reshape
+    LSTM, Input, Dropout, TimeDistributed, Reshape,
+    MultiHeadAttention,
 )
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
@@ -65,18 +66,23 @@ class TFTModel:
         return x
     
     def _build_temporal_processing(self, x):
-        """LSTM para procesamiento temporal."""
-        # LSTM encoder
-        lstm_out = LSTM(
+        """LSTM encoder para procesamiento temporal.
+        
+        Returns:
+            Tupla (output, (state_h, state_c)) donde output tiene shape
+            (B, T, units) y los estados sirven para inicializar el decoder.
+        """
+        lstm_out, state_h, state_c = LSTM(
             units=self.units,
             return_sequences=True,
+            return_state=True,
             dropout=self.dropout_rate,
             name="lstm_encoder"
         )(x)
         
         # GateAddNorm después del LSTM
         x = GateAddNorm(self.units)(lstm_out, x)
-        return x
+        return x, (state_h, state_c)
     
     def _build_attention_block(self, x):
         """Bloque de atención multi-cabeza con máscara causal."""
@@ -112,39 +118,56 @@ class TFTModel:
         
         return outputs
     
-    def _build_decoder_output(self, encoder_out, future_inputs):
-        """Decoder para predicción multi-horizonte con covariables futuras conocidas.
+    def _build_decoder_output(self, encoder_out, encoder_states, future_inputs):
+        """Decoder TFT para predicción multi-horizonte con covariables futuras.
         
-        Combina el contexto del encoder (último timestep) con las features
-        futuras proyectadas para generar una predicción por cada paso del
-        horizonte de pronóstico.
+        Arquitectura fidedigna al TFT original (simplificado):
+        1. Proyección de features futuras + GRN
+        2. LSTM decoder inicializado con estados del encoder
+        3. Atención cruzada: decoder atiende al encoder
+        4. GRN posicional + salida de cuantiles
         
         Args:
             encoder_out: Salida del encoder (B, lookback_steps, units).
-            future_inputs: Features futuras conocidas (B, horizon, n_future_features).
+            encoder_states: Tupla (state_h, state_c) del LSTM encoder.
+            future_inputs: Features futuras (B, horizon, n_future_features).
         
         Returns:
             Tensor de cuantiles (B, horizon, num_quantiles).
         """
-        import keras.ops as ops
+        # 1. Proyectar features futuras a la dimensión del modelo + GRN
+        fut_proj = Dense(self.units, name="future_projection")(future_inputs)
+        fut_proj = GatedResidualNetwork(self.units, self.dropout_rate)(fut_proj)
         
-        # Contexto del encoder: último timestep
-        context = encoder_out[:, -1, :]  # (B, units)
-        context = Reshape((1, self.units))(context)  # (B, 1, units)
+        # 2. LSTM decoder inicializado con estados del encoder
+        decoder_lstm = LSTM(
+            units=self.units,
+            return_sequences=True,
+            dropout=self.dropout_rate,
+            name="lstm_decoder",
+        )(fut_proj, initial_state=list(encoder_states))
         
-        # Proyectar features futuras a la dimensión del modelo
-        fut = Dense(self.units, name="future_projection")(future_inputs)  # (B, H, units)
+        # Skip connection con gating
+        decoder_out = GateAddNorm(self.units)(decoder_lstm, fut_proj)
         
-        # Combinar: contexto del encoder + features futuras (broadcast)
-        decoder = ops.add(fut, context)  # (B, H, units)
+        # 3. Atención cruzada: decoder queries → encoder keys/values
+        cross_attn = MultiHeadAttention(
+            num_heads=self.num_heads,
+            key_dim=self.units // self.num_heads,
+            dropout=self.dropout_rate,
+            name="cross_attention",
+        )(query=decoder_out, key=encoder_out, value=encoder_out)
         
-        # GRN para refinamiento
-        decoder = GatedResidualNetwork(self.units, self.dropout_rate)(decoder)
+        # Skip connection con gating
+        decoder_out = GateAddNorm(self.units)(cross_attn, decoder_out)
         
-        # Salida de cuantiles por timestep
+        # 4. GRN posicional
+        decoder_out = GatedResidualNetwork(self.units, self.dropout_rate)(decoder_out)
+        
+        # 5. Salida de cuantiles por timestep
         outputs = TimeDistributed(
             Dense(self.num_quantiles), name="quantile_output"
-        )(decoder)  # (B, H, num_quantiles)
+        )(decoder_out)
         
         return outputs
     
@@ -152,30 +175,30 @@ class TFTModel:
         """Construye el modelo TFT completo.
         
         Si n_future_features > 0 y forecast_horizon > 1, construye un modelo
-        con dos entradas (past_inputs, future_inputs) y un decoder que combina
-        el contexto del encoder con las covariables futuras.
+        con dos entradas (past_inputs, future_inputs) y un decoder con LSTM
+        inicializado desde el encoder y atención cruzada.
         """
         past_inputs = Input(shape=(self.lookback_steps, self.n_features), name="past_inputs")
         
         x = self._build_input_projection(past_inputs)
         x = self._build_grn_stack(x, self.num_grn_layers, "encoder_grn")
-        x = self._build_temporal_processing(x)
+        x, encoder_states = self._build_temporal_processing(x)
         x = self._build_attention_block(x)
-        x = self._build_grn_stack(x, 1, "post_attention_grn")
+        encoder_out = self._build_grn_stack(x, 1, "post_attention_grn")
         
         if self.forecast_horizon > 1 and self.n_future_features > 0:
             future_inputs = Input(
                 shape=(self.forecast_horizon, self.n_future_features),
                 name="future_inputs",
             )
-            outputs = self._build_decoder_output(x, future_inputs)
+            outputs = self._build_decoder_output(encoder_out, encoder_states, future_inputs)
             self.model = Model(
                 inputs=[past_inputs, future_inputs],
                 outputs=outputs,
                 name="TFT_Simplified",
             )
         else:
-            outputs = self._build_output_layer(x)
+            outputs = self._build_output_layer(encoder_out)
             self.model = Model(
                 inputs=past_inputs, outputs=outputs, name="TFT_Simplified"
             )
@@ -355,6 +378,7 @@ class TFTModel:
         proc_dir: str | Path = "data/proc",
         target_col: str = "Inflacion_total",
         feature_cols: Optional[Iterable[str]] = None,
+        future_feature_cols: Optional[Iterable[str]] = None,
         val_ratio: float = 0.1,
         test_ratio: float = 0.1,
         standardize_X: bool = True,
@@ -380,14 +404,23 @@ class TFTModel:
             target_col=target_col,
             lookback_steps=self.lookback_steps,
             forecast_horizon=self.forecast_horizon,
+            future_feature_cols=future_feature_cols,
         )
 
         X_train, y_train, X_val, y_val, X_test, y_test = self.time_split(
             X, y, val_ratio=val_ratio, test_ratio=test_ratio
         )
 
+        Xf_train = Xf_val = Xf_test = None
+        if X_future is not None and self.forecast_horizon > 1:
+            Xf_train, _, Xf_val, _, Xf_test, _ = self.time_split(
+                X_future, y, val_ratio=val_ratio, test_ratio=test_ratio
+            )
+
         if standardize_X:
             X_train, X_val, X_test, mean, std = self.standardize_from_train(X_train, X_val, X_test)
+            if Xf_train is not None:
+                Xf_train, Xf_val, Xf_test, _, _ = self.standardize_from_train(Xf_train, Xf_val, Xf_test)
 
         # Asegurar compatibilidad de n_features
         if X_train.shape[-1] != self.n_features:
@@ -395,10 +428,13 @@ class TFTModel:
             # reconstruir modelo si ya existía con otro n_features
             self.model = None
 
+        train_input = [X_train, Xf_train] if Xf_train is not None else X_train
+        val_input = [X_val, Xf_val] if Xf_val is not None else X_val
+
         history = self.fit(
-            X_train=X_train,
+            X_train=train_input,
             y_train=y_train,
-            X_val=X_val,
+            X_val=val_input,
             y_val=y_val,
             **fit_kwargs,
         )
@@ -469,9 +505,9 @@ class TFTModel:
     
     def fit(
         self,
-        X_train: np.ndarray,
+        X_train: np.ndarray | list[np.ndarray],
         y_train: np.ndarray,
-        X_val: np.ndarray = None,
+        X_val: np.ndarray | list[np.ndarray] = None,
         y_val: np.ndarray = None,
         epochs: int = 100,
         batch_size: int = 32,
@@ -488,7 +524,7 @@ class TFTModel:
             X_val, y_val: datos de validación opcionales
             epochs: número máximo de épocas
             batch_size: tamaño del batch
-            patience: épocas sin mejora antes de early stopping
+            patience: épocas sin mejora usadas por ReduceLROnPlateau
             save_best: guardar el mejor modelo
             model_path: ruta para guardar el modelo
         """
@@ -508,7 +544,9 @@ class TFTModel:
         ]
         
         if save_best:
-            os.makedirs(os.path.dirname(model_path), exist_ok=True)
+            model_dir = os.path.dirname(model_path)
+            if model_dir:
+                os.makedirs(model_dir, exist_ok=True)
             callbacks.append(
                 ModelCheckpoint(
                     model_path,
@@ -542,13 +580,14 @@ class TFTModel:
             raise ValueError("El modelo no ha sido construido/entrenado")
         
         preds = self.model.predict(X)
-        
         result = {"predictions": preds}
-        
+
         if self.num_quantiles >= 3:
-            result["lower"] = preds[..., 0]      # q=0.1
-            result["median"] = preds[..., 1]     # q=0.5
-            result["upper"] = preds[..., 2]      # q=0.9
+            preds_sorted = np.sort(preds, axis=-1)
+            result["predictions"] = preds_sorted
+            result["lower"] = preds_sorted[..., 0]      # q10
+            result["median"] = preds_sorted[..., 1]     # q50
+            result["upper"] = preds_sorted[..., 2]      # q90
         elif self.num_quantiles == 1:
             result["point"] = preds[..., 0]
         

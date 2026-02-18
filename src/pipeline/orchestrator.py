@@ -142,7 +142,7 @@ class Orchestrator:
         
         model, model_name = load_model(self.logger, self.state)
         df, feature_cols = prepare_data(self.logger)
-        mean, std, mean_f, std_f = get_scaler_stats(df, feature_cols, self.logger)
+        mean, std, mean_f, std_f, mean_y, std_y = get_scaler_stats(df, feature_cols, self.logger)
         
         # Pronosticar todas las covariables futuras
         covariate_forecasts = forecast_all_covariates(df, logger=self.logger)
@@ -152,6 +152,8 @@ class Orchestrator:
             covariate_forecasts=covariate_forecasts,
             mean_f=mean_f,
             std_f=std_f,
+            mean_y=mean_y,
+            std_y=std_y,
         )
         
         csv_path = save_predictions(pred_df, model_name, self.logger)

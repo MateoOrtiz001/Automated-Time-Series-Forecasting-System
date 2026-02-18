@@ -45,9 +45,6 @@ from .core import (
     run_pipeline,
 )
 
-# Orchestrator
-from .orchestrator import Orchestrator
-
 __all__ = [
     # Configuración
     "CONFIG",
@@ -82,3 +79,10 @@ __all__ = [
     # Orchestrator
     "Orchestrator",
 ]
+
+
+def __getattr__(name: str):
+    if name == "Orchestrator":
+        from .orchestrator import Orchestrator as _Orchestrator
+        return _Orchestrator
+    raise AttributeError(name)

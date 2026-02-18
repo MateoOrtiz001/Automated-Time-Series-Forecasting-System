@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import calendar
 import json
 import time
 from dataclasses import dataclass
@@ -853,25 +854,14 @@ def extraer_brent_fred(
 def _get_dynamic_end_date() -> int:
     """Genera fechaFin dinámica: último día del mes actual + 1 mes de margen."""
     now = datetime.now()
-    # Calcular el último día del mes siguiente para dar margen
-    if now.month == 12:
-        # Si estamos en diciembre, ir a enero del año siguiente
-        return int(f"{now.year + 1}0131")
-    elif now.month == 11:
-        # Si estamos en noviembre, ir a diciembre
-        return int(f"{now.year}1231")
-    else:
-        # Último día del mes siguiente
-        next_month = now.month + 2
-        year = now.year
-        if next_month > 12:
-            next_month -= 12
-            year += 1
-        # Primer día del mes después del siguiente, menos 1 = último día del mes siguiente
-        if next_month == 12:
-            return int(f"{year}1231")
-        else:
-            return int(f"{year}{next_month:02d}01") - 1
+    next_month = now.month + 1
+    year = now.year
+    if next_month > 12:
+        next_month = 1
+        year += 1
+
+    last_day = calendar.monthrange(year, next_month)[1]
+    return int(f"{year}{next_month:02d}{last_day:02d}")
 
 
 def _get_suameca_default_series() -> dict[str, dict[str, Any]]:

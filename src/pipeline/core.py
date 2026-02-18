@@ -372,12 +372,15 @@ def save_scaler_stats(
     std: np.ndarray,
     mean_f: np.ndarray = None,
     std_f: np.ndarray = None,
+    mean_y: float = None,
+    std_y: float = None,
     logger: logging.Logger = None,
 ) -> None:
     """Guarda las estadísticas de estandarización (mean/std) en disco.
     
     Se guardan junto al modelo para garantizar que la misma normalización
     usada en entrenamiento se aplique durante la predicción.
+    Incluye mean_y/std_y para desnormalizar el target.
     
     Se guarda en dos ubicaciones:
     - CONFIG['models_dir'] (models/) para el modelo base.
@@ -388,6 +391,10 @@ def save_scaler_stats(
         data["mean_f"] = mean_f
     if std_f is not None:
         data["std_f"] = std_f
+    if mean_y is not None:
+        data["mean_y"] = np.float64(mean_y)
+    if std_y is not None:
+        data["std_y"] = np.float64(std_y)
     
     for save_dir in [CONFIG["models_dir"], CONFIG["pipeline_models_dir"]]:
         save_dir.mkdir(parents=True, exist_ok=True)
@@ -400,13 +407,15 @@ def save_scaler_stats(
 
 def load_scaler_stats(
     logger: logging.Logger = None,
-) -> Tuple[np.ndarray, np.ndarray, Optional[np.ndarray], Optional[np.ndarray]]:
+) -> Tuple[np.ndarray, np.ndarray, Optional[np.ndarray], Optional[np.ndarray],
+           Optional[float], Optional[float]]:
     """Carga las estadísticas de estandarización guardadas.
     
     Busca en: misc/models/ → models/ (en ese orden de prioridad).
     
     Returns:
-        (mean, std, mean_f, std_f). mean_f y std_f pueden ser None.
+        (mean, std, mean_f, std_f, mean_y, std_y).
+        mean_f, std_f, mean_y, std_y pueden ser None.
     
     Raises:
         FileNotFoundError: Si no se encuentra el archivo en ninguna ubicación.
@@ -424,9 +433,11 @@ def load_scaler_stats(
             std = data["std"]
             mean_f = data["mean_f"] if "mean_f" in data else None
             std_f = data["std_f"] if "std_f" in data else None
+            mean_y = float(data["mean_y"]) if "mean_y" in data else None
+            std_y = float(data["std_y"]) if "std_y" in data else None
             if logger:
                 logger.info(f"  Scaler stats cargadas desde: {path}")
-            return mean, std, mean_f, std_f
+            return mean, std, mean_f, std_f, mean_y, std_y
     
     raise FileNotFoundError(
         f"No se encontró {SCALER_STATS_FILENAME} en: "
@@ -438,7 +449,8 @@ def get_scaler_stats(
     df: pd.DataFrame,
     feature_cols: List[str],
     logger: logging.Logger = None,
-) -> Tuple[np.ndarray, np.ndarray, Optional[np.ndarray], Optional[np.ndarray]]:
+) -> Tuple[np.ndarray, np.ndarray, Optional[np.ndarray], Optional[np.ndarray],
+           Optional[float], Optional[float]]:
     """Obtiene las estadísticas de estandarización.
     
     Intenta cargar stats guardadas primero (generadas durante entrenamiento).
@@ -450,7 +462,7 @@ def get_scaler_stats(
         logger: Logger (puede ser None).
     
     Returns:
-        (mean, std, mean_f, std_f).
+        (mean, std, mean_f, std_f, mean_y, std_y).
     """
     try:
         return load_scaler_stats(logger)
@@ -459,7 +471,7 @@ def get_scaler_stats(
             logger.warning("  Stats no encontradas en disco. Calculando desde datos actuales...")
         
         future_feature_cols = CONFIG.get("future_feature_cols", [])
-        X, _, X_future = TFTModel.make_supervised_windows(
+        X, y, X_future = TFTModel.make_supervised_windows(
             df=df,
             feature_cols=feature_cols,
             target_col=CONFIG["target_col"],
@@ -478,9 +490,16 @@ def get_scaler_stats(
         if X_future is not None:
             _, _, _, mean_f, std_f = TFTModel.standardize_from_train(X_future[:n_train])
         
-        save_scaler_stats(mean, std, mean_f, std_f, logger=logger)
+        # Estadísticas del target
+        y_train_flat = y[:n_train].ravel()
+        mean_y = float(np.mean(y_train_flat))
+        std_y = float(np.std(y_train_flat))
+        if std_y < 1e-6:
+            std_y = 1.0
         
-        return mean, std, mean_f, std_f
+        save_scaler_stats(mean, std, mean_f, std_f, mean_y, std_y, logger=logger)
+        
+        return mean, std, mean_f, std_f, mean_y, std_y
 
 
 # LOGGING
@@ -974,6 +993,8 @@ def predict_future(
     covariate_forecasts: Dict[str, np.ndarray] = None,
     mean_f: np.ndarray = None,
     std_f: np.ndarray = None,
+    mean_y: float = None,
+    std_y: float = None,
 ) -> pd.DataFrame:
     """Realiza predicción directa de N meses con decoder de covariables futuras.
     
@@ -981,6 +1002,8 @@ def predict_future(
     - past_inputs: ventana de lookback con todas las features estandarizadas.
     - future_inputs: covariables futuras conocidas/pronosticadas estandarizadas
       con estadísticas guardadas del entrenamiento.
+    
+    La salida se desnormaliza con mean_y/std_y (guardados del entrenamiento).
     
     Args:
         model: Modelo TFT cargado (con decoder).
@@ -993,6 +1016,8 @@ def predict_future(
         covariate_forecasts: Dict con pronósticos de covariables {nombre: array}.
         mean_f: Media para estandarización de features futuras (guardada del train).
         std_f: Desviación estándar de features futuras (guardada del train).
+        mean_y: Media del target (guardada del train).
+        std_y: Desviación estándar del target (guardada del train).
     """
     n_months = n_months or CONFIG["future_months"]
     future_feature_cols = CONFIG.get("future_feature_cols", [])
@@ -1042,6 +1067,21 @@ def predict_future(
     median = np.ravel(pred_result.get("median", pred_result["predictions"][..., 1]))
     lower = np.ravel(pred_result["lower"]) if "lower" in pred_result else [None] * n_months
     upper = np.ravel(pred_result["upper"]) if "upper" in pred_result else [None] * n_months
+    
+    # Desnormalizar predicciones a escala original
+    if mean_y is not None and std_y is not None:
+        median = median * std_y + mean_y
+        if not isinstance(lower, list):
+            lower = lower * std_y + mean_y
+        if not isinstance(upper, list):
+            upper = upper * std_y + mean_y
+    
+    # Corregir cuantiles invertidos: banda IC usa extremos de los 3 cuantiles,
+    # manteniendo la predicción (q50) siempre dentro del intervalo.
+    if not isinstance(lower, list) and not isinstance(upper, list):
+        all_q = np.stack([lower, median, upper], axis=-1)  # (horizon, 3)
+        lower = np.min(all_q, axis=-1)
+        upper = np.max(all_q, axis=-1)
     
     predictions = []
     for i in range(n_months):
@@ -1116,7 +1156,15 @@ def finetune_model(
         train_input = [X_train_s, Xf_train_s]
     
     # Guardar estadísticas de estandarización
-    save_scaler_stats(mean, std, mean_f, std_f, logger=logger)
+    # Estandarizar target
+    y_flat = y_train.ravel()
+    mean_y = float(np.mean(y_flat))
+    std_y = float(np.std(y_flat))
+    if std_y < 1e-6:
+        std_y = 1.0
+    y_train_s = ((y_train - mean_y) / std_y).astype(np.float32)
+    
+    save_scaler_stats(mean, std, mean_f, std_f, mean_y, std_y, logger=logger)
     
     logger.info(f"Train: {len(X_train)} samples (todos los datos de la ventana)")
     logger.info(f"Early stopping: deshabilitado")
@@ -1134,7 +1182,7 @@ def finetune_model(
     
     history = model.fit(
         X_train=train_input,
-        y_train=y_train,
+        y_train=y_train_s,
         X_val=None,
         y_val=None,
         epochs=CONFIG["finetune_epochs"],
@@ -1148,7 +1196,7 @@ def finetune_model(
     logger.info("\nEvaluación post fine-tuning (in-sample):")
     preds = model.predict(train_input)
     y_pred = preds.get("median", preds.get("predictions"))
-    y_pred = np.ravel(y_pred)
+    y_pred = np.ravel(y_pred) * std_y + mean_y
     y_true_flat = np.ravel(y_train)
     if y_pred.size > y_true_flat.size:
         y_pred = y_pred[:y_true_flat.size]
@@ -1222,7 +1270,16 @@ def train_model_from_scratch(
         test_input = [X_test_s, Xf_test_s]
     
     # Guardar estadísticas de estandarización
-    save_scaler_stats(mean, std, mean_f, std_f, logger=logger)
+    # Estandarizar target
+    y_train_flat = y_train.ravel()
+    mean_y = float(np.mean(y_train_flat))
+    std_y = float(np.std(y_train_flat))
+    if std_y < 1e-6:
+        std_y = 1.0
+    y_train_s = ((y_train - mean_y) / std_y).astype(np.float32)
+    y_test_s = ((y_test - mean_y) / std_y).astype(np.float32)
+    
+    save_scaler_stats(mean, std, mean_f, std_f, mean_y, std_y, logger=logger)
     
     logger.info(f"Train: {n_train}, Test: {n_test} (split {100-int(CONFIG['test_ratio']*100)}/{int(CONFIG['test_ratio']*100)})")
     logger.info(f"Scaler stats guardadas para uso en predicción.")
@@ -1248,7 +1305,7 @@ def train_model_from_scratch(
     model_path = models_dir / "tft_best.keras"
     tft.fit(
         X_train=train_input,
-        y_train=y_train,
+        y_train=y_train_s,
         X_val=None,
         y_val=None,
         epochs=epochs,
@@ -1261,7 +1318,7 @@ def train_model_from_scratch(
     logger.info("\nEvaluación en test set:")
     preds = tft.predict(test_input)
     y_pred = preds.get("median", preds.get("predictions"))
-    y_pred = np.ravel(y_pred)
+    y_pred = np.ravel(y_pred) * std_y + mean_y
     y_test_flat = np.ravel(y_test)
     if y_pred.size > y_test_flat.size:
         y_pred = y_pred[:y_test_flat.size]
@@ -1414,7 +1471,7 @@ def run_pipeline(
         try:
             model, model_name = load_model(logger, state)
             df, feature_cols = prepare_data(logger)
-            mean, std, mean_f, std_f = get_scaler_stats(df, feature_cols, logger)
+            mean, std, mean_f, std_f, mean_y, std_y = get_scaler_stats(df, feature_cols, logger)
         except Exception as e:
             logger.error(f"Error cargando modelo/datos: {e}")
             results["errors"].append(str(e))
@@ -1429,7 +1486,7 @@ def run_pipeline(
             model_name = state.state["current_model"]
             
             df, feature_cols = prepare_data(logger)
-            mean, std, mean_f, std_f = get_scaler_stats(df, feature_cols, logger)
+            mean, std, mean_f, std_f, mean_y, std_y = get_scaler_stats(df, feature_cols, logger)
             
             if cleanup:
                 logger.info("\n[POST-FINETUNE] Limpiando modelos antiguos...")
@@ -1449,6 +1506,8 @@ def run_pipeline(
                 covariate_forecasts=covariate_forecasts,
                 mean_f=mean_f,
                 std_f=std_f,
+                mean_y=mean_y,
+                std_y=std_y,
             )
             
             csv_path = save_predictions(pred_df, model_name, logger)

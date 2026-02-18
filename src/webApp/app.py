@@ -190,6 +190,46 @@ def get_latest_model_name():
         return "default"
 
 
+def create_tft_instance_for_inference(feature_cols, future_feature_cols):
+    """Crea instancia de TFTModel compatible con distintas firmas del constructor.
+
+    Streamlit Cloud puede quedar temporalmente con artefactos o dependencias
+    desalineadas; este fallback evita fallar por kwargs no soportados.
+    """
+    common_kwargs = dict(
+        lookback_steps=CONFIG["lookback_steps"],
+        forecast_horizon=CONFIG["forecast_horizon"],
+        n_features=len(feature_cols),
+        units=CONFIG["tft_units"],
+        num_heads=CONFIG["tft_heads"],
+        num_grn_layers=CONFIG["tft_grn_layers"],
+        dropout_rate=CONFIG["tft_dropout"],
+        num_quantiles=3,
+    )
+
+    # Firma completa actual
+    try:
+        return TFTModel(
+            **common_kwargs,
+            n_future_features=len(future_feature_cols),
+            num_lstm_layers=CONFIG["tft_lstm_layers"],
+        )
+    except TypeError:
+        pass
+
+    # Firma intermedia (sin num_lstm_layers)
+    try:
+        return TFTModel(
+            **common_kwargs,
+            n_future_features=len(future_feature_cols),
+        )
+    except TypeError:
+        pass
+
+    # Firma mínima (retrocompatibilidad)
+    return TFTModel(**common_kwargs)
+
+
 @st.cache_resource
 def load_model(_model_key: str = None):
     """Carga el modelo TFT más reciente.
@@ -226,18 +266,7 @@ def load_model(_model_key: str = None):
     feature_cols = [c for c in df.columns if c != "date"]
     future_feature_cols = CONFIG.get("future_feature_cols", [])
     
-    tft = TFTModel(
-        lookback_steps=CONFIG["lookback_steps"],
-        forecast_horizon=CONFIG["forecast_horizon"],
-        n_features=len(feature_cols),
-        n_future_features=len(future_feature_cols),
-        units=CONFIG["tft_units"],
-        num_heads=CONFIG["tft_heads"],
-        num_lstm_layers=CONFIG["tft_lstm_layers"],
-        num_grn_layers=CONFIG["tft_grn_layers"],
-        dropout_rate=CONFIG["tft_dropout"],
-        num_quantiles=3,
-    )
+    tft = create_tft_instance_for_inference(feature_cols, future_feature_cols)
     
     load_errors = []
     for model_path in unique_candidates:
@@ -274,7 +303,7 @@ def load_latest_predictions():
     
 
 
-def generate_predictions(model, df, n_months=None):
+def generate_predictions(model, df, n_months=None, covariate_forecasts=None):
     """Genera predicciones directas con decoder de covariables futuras.
     
     El modelo recibe dos entradas:
@@ -294,7 +323,7 @@ def generate_predictions(model, df, n_months=None):
     feature_cols = [c for c in df.columns if c != "date"]
     
     # Cargar estadísticas de estandarización guardadas
-    mean, std, mean_f, std_f = get_scaler_stats(df, feature_cols, logger=None)
+    mean, std, mean_f, std_f, mean_y, std_y = get_scaler_stats(df, feature_cols, logger=None)
     
     # Preparar entrada del encoder (lookback)
     data_features = df[feature_cols].to_numpy(dtype=np.float32)
@@ -311,7 +340,7 @@ def generate_predictions(model, df, n_months=None):
     )
     
     # Pronosticar todas las covariables futuras
-    covariate_forecasts = forecast_all_covariates(df, n_steps=n_months)
+    covariate_forecasts = covariate_forecasts or forecast_all_covariates(df, n_steps=n_months)
     
     # Construir features futuras
     X_fut = np.zeros((1, n_months, len(future_feature_cols)), dtype=np.float32)
@@ -340,6 +369,21 @@ def generate_predictions(model, df, n_months=None):
     lower = np.ravel(pred_result["lower"]) if "lower" in pred_result else [None] * n_months
     upper = np.ravel(pred_result["upper"]) if "upper" in pred_result else [None] * n_months
     
+    # Desnormalizar predicciones a escala original
+    if mean_y is not None and std_y is not None:
+        median = median * std_y + mean_y
+        if not isinstance(lower, list):
+            lower = lower * std_y + mean_y
+        if not isinstance(upper, list):
+            upper = upper * std_y + mean_y
+    
+    # Corregir cuantiles invertidos: banda IC usa extremos de los 3 cuantiles,
+    # manteniendo la predicción (q50) siempre dentro del intervalo.
+    if not isinstance(lower, list) and not isinstance(upper, list):
+        all_q = np.stack([lower, median, upper], axis=-1)  # (horizon, 3)
+        lower = np.min(all_q, axis=-1)
+        upper = np.max(all_q, axis=-1)
+    
     predictions = []
     for i in range(n_months):
         predictions.append({
@@ -352,7 +396,7 @@ def generate_predictions(model, df, n_months=None):
     return pd.DataFrame(predictions)
 
 
-def generate_future_covariates_df(df, n_months=None):
+def generate_future_covariates_df(df, n_months=None, forecasts=None):
     """Genera DataFrame con covariables futuras pronosticadas para visualización."""
     n_months = n_months or CONFIG["future_months"]
 
@@ -367,7 +411,7 @@ def generate_future_covariates_df(df, n_months=None):
         freq="MS",
     )
 
-    forecasts = forecast_all_covariates(df, n_steps=n_months)
+    forecasts = forecasts or forecast_all_covariates(df, n_steps=n_months)
     covariate_cols = list(CONFIG.get("future_forecast_cols", {}).keys())
 
     rows = []
@@ -411,16 +455,31 @@ def plot_inflation_forecast(df_hist, df_pred, months_history=36):
         marker=dict(size=6),
     ))
     
-    # Intervalo de confianza
+    # Intervalo de confianza q10–q90
+    _CI_GROUP = "IC q10–q90"
     if "lower" in df_pred.columns and df_pred["lower"].notna().any():
+        # Lower bound line (dotted, visible, acts as fill anchor)
         fig.add_trace(go.Scatter(
-            x=pd.concat([df_pred["date"], df_pred["date"][::-1]]),
-            y=pd.concat([df_pred["upper"], df_pred["lower"][::-1]]),
-            fill="toself",
-            fillcolor="rgba(231, 76, 60, 0.2)",
-            line=dict(color="rgba(255,255,255,0)"),
-            name="IC 80%",
+            x=df_pred["date"],
+            y=df_pred["lower"],
+            mode="lines",
+            line=dict(color="rgba(231, 76, 60, 0.5)", width=1, dash="dot"),
+            legendgroup=_CI_GROUP,
+            name=_CI_GROUP,
             showlegend=True,
+            hovertemplate="q10: %{y:.2f}%<extra></extra>",
+        ))
+        # Upper bound line with fill down to lower
+        fig.add_trace(go.Scatter(
+            x=df_pred["date"],
+            y=df_pred["upper"],
+            mode="lines",
+            line=dict(color="rgba(231, 76, 60, 0.5)", width=1, dash="dot"),
+            fill="tonexty",
+            fillcolor="rgba(231, 76, 60, 0.15)",
+            legendgroup=_CI_GROUP,
+            showlegend=False,
+            hovertemplate="q90: %{y:.2f}%<extra></extra>",
         ))
     
     # Línea vertical de corte
@@ -687,15 +746,22 @@ def main():
             st.subheader("Predicción de Inflación a 6 Meses")
             
             # Cargar o generar predicciones (con caché que se invalida cuando hay modelo nuevo)
-            model_cache_key = get_latest_model_name()
+            model_cache_key = f"{get_latest_model_name()}_{data_cache_key}"
             model, model_name = load_model(_model_key=model_cache_key)
+
+            covariate_forecasts = None
+            if model is not None:
+                covariate_forecasts = forecast_all_covariates(
+                    df,
+                    n_steps=CONFIG["future_months"],
+                )
             
             if model is None:
                 st.warning("No se encontró modelo entrenado. Entrena el modelo primero.")
                 pred_df = load_latest_predictions()
             elif st.session_state.get("regenerate", False):
                 with st.spinner("Generando predicciones..."):
-                    pred_df = generate_predictions(model, df)
+                    pred_df = generate_predictions(model, df, covariate_forecasts=covariate_forecasts)
                     st.session_state["regenerate"] = False
                     st.success(" Predicciones generadas")
             else:
@@ -703,13 +769,13 @@ def main():
                 pred_df = load_latest_predictions()
                 if pred_df is None and model is not None:
                     with st.spinner("Generando predicciones..."):
-                        pred_df = generate_predictions(model, df)
+                        pred_df = generate_predictions(model, df, covariate_forecasts=covariate_forecasts)
             
             if pred_df is not None:
                 fig = plot_inflation_forecast(df, pred_df, months_history)
                 if not show_confidence:
-                    fig.data = [t for t in fig.data if t.name != "IC 80%"]
-                st.plotly_chart(fig, use_container_width=True)
+                    fig.data = [t for t in fig.data if t.legendgroup != "IC q10–q90"]
+                st.plotly_chart(fig, width="stretch")
             else:
                 st.warning("No hay predicciones disponibles")
         
@@ -782,13 +848,19 @@ def main():
                     "Límite Inf.": "{:.2f}",
                     "Límite Sup.": "{:.2f}",
                 }),
-                use_container_width=True,
+                width="stretch",
                 hide_index=True,
             )
 
             st.divider()
             st.subheader(" Covariables Futuras Pronosticadas")
-            cov_df = generate_future_covariates_df(df, n_months=len(pred_df))
+            if covariate_forecasts is None:
+                covariate_forecasts = forecast_all_covariates(df, n_steps=len(pred_df))
+            cov_df = generate_future_covariates_df(
+                df,
+                n_months=len(pred_df),
+                forecasts=covariate_forecasts,
+            )
 
             if cov_df is not None and not cov_df.empty:
                 covariate_options = [c for c in cov_df.columns if c != "date"]
@@ -801,7 +873,7 @@ def main():
 
                 fig_cov = plot_future_covariates_selected(cov_df, selected_covariates)
                 if fig_cov is not None:
-                    st.plotly_chart(fig_cov, use_container_width=True)
+                    st.plotly_chart(fig_cov, width="stretch")
                 else:
                     st.info("Selecciona al menos una covariable para mostrar el gráfico.")
 
@@ -813,7 +885,7 @@ def main():
                     cov_display.style.format({
                         c: "{:.2f}" for c in cov_display.columns if c != "Fecha"
                     }),
-                    use_container_width=True,
+                    width="stretch",
                     hide_index=True,
                 )
     
@@ -833,7 +905,7 @@ def main():
         
         # Gráfico de la variable seleccionada
         fig = plot_variable_history(df, selected_var, months_history)
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
         
         # Estadísticas
         col1, col2, col3, col4 = st.columns(4)
@@ -863,7 +935,7 @@ def main():
         
         if selected_vars:
             fig = plot_multi_variable(df, selected_vars, months_history)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
     
     # ==========================================================================
     # TAB 3: ANÁLISIS
@@ -877,7 +949,7 @@ def main():
             # Matriz de correlación
             st.markdown("### Correlaciones")
             fig = plot_correlation_matrix(df)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
         
         with col2:
             # Estadísticas descriptivas
@@ -889,7 +961,7 @@ def main():
             
             st.dataframe(
                 stats[["mean", "std", "min", "max"]].style.format("{:.2f}"),
-                use_container_width=True,
+                width="stretch",
             )
         
         st.divider()
@@ -921,7 +993,7 @@ def main():
                 color_continuous_scale="RdYlGn_r",
             )
             fig.update_layout(yaxis_title="", showlegend=False, height=300)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
         
         with col2:
             # Volatilidad
@@ -945,7 +1017,7 @@ def main():
                 color_continuous_scale="Oranges",
             )
             fig.update_layout(yaxis_title="", showlegend=False, height=300)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
     
     # ==========================================================================
     # TAB 4: INFORMACIÓN
@@ -997,7 +1069,7 @@ def main():
                 {"Parámetro": "Dropout", "Valor": CONFIG['tft_dropout']},
             ])
             config_df["Valor"] = config_df["Valor"].astype(str)
-            st.dataframe(config_df, hide_index=True, use_container_width=True)
+            st.dataframe(config_df, hide_index=True, width="stretch")
             
             st.markdown("### Fuentes de Datos")
             st.markdown("""
