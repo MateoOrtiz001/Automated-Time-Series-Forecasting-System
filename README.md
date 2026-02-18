@@ -22,8 +22,11 @@ This repository contains an implementation of a TFT (Temporal Fusion Transformer
 ## Features
 
 - **Temporal Fusion Transformer (TFT)** model for inflation prediction
+- **Direct multi-horizon forecasting (6 months)** using decoder inputs
 - **Automated data extraction** from multiple sources (BanRep, FAO, FRED)
 - **Monthly pipeline** with automatic fine-tuning every 3 months
+- **Future covariates forecasting** for IPP, TRM, Brent, FAO, Interest Rate, GDP
+- **Persistent standardization stats** (saved mean/std for consistent inference)
 - **GitHub Actions automation** for scheduled monthly updates
 - **Interactive dashboard** built with Streamlit
 - **File rotation system** to maintain only the 2 most recent versions
@@ -122,7 +125,7 @@ The system includes a GitHub Actions workflow that automatically runs the pipeli
 │  1. GitHub Actions triggers the workflow                        │
 │  2. Pipeline downloads data from BanRep, FAO, FRED              │
 │  3. Data is consolidated into latest.csv                        │
-│  4. Model generates predictions for next 12 months              │
+│  4. Covariates are forecasted and model predicts next 6 months  │
 │  5. Results are committed and pushed to the repository          │
 │  6. Streamlit Cloud detects the push and re-deploys             │
 │  7. Dashboard shows updated data automatically                  │
@@ -151,11 +154,11 @@ You can also run the pipeline manually from the Actions tab:
 │   └── proc/
 │       └── latest.csv          # Current data for dashboard
 ├── misc/
-│   ├── models/                 # Fine-tuned models
+│   ├── models/                 # Fine-tuned models + scaler_stats.npz
 │   ├── results/
 │   │   └── predictions_latest.csv  # Current predictions
 │   └── logs/                   # Execution logs
-├── models/                     # Base trained models
+├── models/                     # Base trained models + scaler_stats.npz
 ├── results/                    # Analysis results
 ├── src/
 │   ├── etl/
@@ -188,6 +191,15 @@ The system automatically downloads data from:
 | **FAO** | Food Price Index | Monthly |
 | **FRED** | Brent Oil Price | Monthly |
 
+### Current Forecasting Setup
+
+- **Input window:** 12 months
+- **Forecast horizon:** 6 months (direct, non-autoregressive rollout)
+- **Quantiles:** 10%, 50%, 90%
+- **Future-known features:** `sin_month`, `cos_month`
+- **Future-forecasted covariates:** `IPP`, `TRM`, `Brent`, `FAO`, `Tasa_interes_colocacion_total`, `PIB_real_trimestral_2015_AE`
+- **Scaling consistency:** training mean/std are persisted and reused in inference
+
 ### Model Fine-tuning
 
 The pipeline automatically performs fine-tuning every 3 months. You can force it with:
@@ -195,6 +207,8 @@ The pipeline automatically performs fine-tuning every 3 months. You can force it
 ```bash
 python -m src.pipeline.monthly_pipeline --finetune
 ```
+
+Current fine-tuning configuration uses fixed epochs (no early stopping criterion).
 
 ### File Rotation System
 

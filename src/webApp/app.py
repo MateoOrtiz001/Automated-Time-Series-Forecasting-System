@@ -3,8 +3,9 @@ Dashboard de Predicción de Inflación - Colombia
 ================================================
 
 Dashboard interactivo en Streamlit para visualizar:
-- Predicciones de inflación a 12 meses (modelo TFT)
+- Predicciones de inflación a 6 meses (modelo TFT)
 - Datos históricos de variables macroeconómicas
+- Covariables futuras pronosticadas (IPP, TRM, Brent, FAO, Tasa, PIB)
 - Métricas del modelo
 - Estado del sistema
 
@@ -351,6 +352,37 @@ def generate_predictions(model, df, n_months=None):
     return pd.DataFrame(predictions)
 
 
+def generate_future_covariates_df(df, n_months=None):
+    """Genera DataFrame con covariables futuras pronosticadas para visualización."""
+    n_months = n_months or CONFIG["future_months"]
+
+    # Asegurar calendar features para coherencia con el pipeline
+    if "sin_month" not in df.columns:
+        df = add_calendar_features(df)
+
+    last_date = df["date"].iloc[-1]
+    future_dates = pd.date_range(
+        start=last_date + pd.DateOffset(months=1),
+        periods=n_months,
+        freq="MS",
+    )
+
+    forecasts = forecast_all_covariates(df, n_steps=n_months)
+    covariate_cols = list(CONFIG.get("future_forecast_cols", {}).keys())
+
+    rows = []
+    for i in range(n_months):
+        row = {"date": future_dates[i]}
+        for col in covariate_cols:
+            if col in forecasts and i < len(forecasts[col]):
+                row[col] = float(forecasts[col][i])
+            else:
+                row[col] = float(df[col].iloc[-1]) if col in df.columns else None
+        rows.append(row)
+
+    return pd.DataFrame(rows)
+
+
 # =============================================================================
 # COMPONENTES DE VISUALIZACIÓN
 # =============================================================================
@@ -518,6 +550,56 @@ def plot_multi_variable(df, variables, months=36):
     return fig
 
 
+def plot_future_covariates(df_cov):
+    """Gráfico de líneas para covariables futuras pronosticadas."""
+    value_cols = [c for c in df_cov.columns if c != "date"]
+    long_df = df_cov.melt(id_vars="date", value_vars=value_cols, var_name="Covariable", value_name="Valor")
+
+    fig = px.line(
+        long_df,
+        x="date",
+        y="Valor",
+        color="Covariable",
+        markers=True,
+        title="Covariables Futuras Pronosticadas",
+    )
+    fig.update_layout(
+        xaxis_title="Fecha",
+        yaxis_title="Valor",
+        hovermode="x unified",
+        height=420,
+    )
+    return fig
+
+
+def plot_future_covariates_selected(df_cov, selected_covariates):
+    """Gráfico de líneas para covariables futuras filtradas por selección."""
+    if not selected_covariates:
+        return None
+
+    value_cols = [c for c in selected_covariates if c in df_cov.columns and c != "date"]
+    if not value_cols:
+        return None
+
+    long_df = df_cov.melt(id_vars="date", value_vars=value_cols, var_name="Covariable", value_name="Valor")
+
+    fig = px.line(
+        long_df,
+        x="date",
+        y="Valor",
+        color="Covariable",
+        markers=True,
+        title="Covariables Futuras Pronosticadas",
+    )
+    fig.update_layout(
+        xaxis_title="Fecha",
+        yaxis_title="Valor",
+        hovermode="x unified",
+        height=420,
+    )
+    return fig
+
+
 # =============================================================================
 # APLICACIÓN PRINCIPAL
 # =============================================================================
@@ -602,7 +684,7 @@ def main():
         col1, col2 = st.columns([3, 1])
         
         with col1:
-            st.subheader("Predicción de Inflación a 12 Meses")
+            st.subheader("Predicción de Inflación a 6 Meses")
             
             # Cargar o generar predicciones (con caché que se invalida cuando hay modelo nuevo)
             model_cache_key = get_latest_model_name()
@@ -662,7 +744,7 @@ def main():
                 # Promedio anual predicho
                 avg_pred = pred_df["prediction"].mean()
                 st.metric(
-                    label="Promedio 12 meses",
+                    label=f"Promedio {len(pred_df)} meses",
                     value=f"{avg_pred:.2f}%",
                 )
                 
@@ -703,6 +785,37 @@ def main():
                 use_container_width=True,
                 hide_index=True,
             )
+
+            st.divider()
+            st.subheader(" Covariables Futuras Pronosticadas")
+            cov_df = generate_future_covariates_df(df, n_months=len(pred_df))
+
+            if cov_df is not None and not cov_df.empty:
+                covariate_options = [c for c in cov_df.columns if c != "date"]
+                selected_covariates = st.multiselect(
+                    "Selecciona covariables a visualizar",
+                    options=covariate_options,
+                    default=covariate_options,
+                    key="covariates_selector",
+                )
+
+                fig_cov = plot_future_covariates_selected(cov_df, selected_covariates)
+                if fig_cov is not None:
+                    st.plotly_chart(fig_cov, use_container_width=True)
+                else:
+                    st.info("Selecciona al menos una covariable para mostrar el gráfico.")
+
+                cov_display = cov_df.copy()
+                cov_display["date"] = pd.to_datetime(cov_display["date"]).dt.strftime("%Y-%m")
+                cov_display = cov_display.rename(columns={"date": "Fecha"})
+
+                st.dataframe(
+                    cov_display.style.format({
+                        c: "{:.2f}" for c in cov_display.columns if c != "Fecha"
+                    }),
+                    use_container_width=True,
+                    hide_index=True,
+                )
     
     # ==========================================================================
     # TAB 2: DATOS HISTÓRICOS
@@ -854,9 +967,12 @@ def main():
             - **Mecanismos de atención** para identificar eventos importantes
             - **Gated Residual Networks** para selección de características
             - **Predicción cuantílica** para intervalos de confianza
+            - **Decoder con covariables futuras** (sin/cos mes + IPP/TRM/Brent/FAO/Tasa/PIB)
+            - **Estandarización persistente** (mean/std guardados en disco)
             
             El modelo predice 3 cuantiles (10%, 50%, 90%) para proporcionar 
-            tanto el pronóstico puntual como el intervalo de confianza.
+            tanto el pronóstico puntual como el intervalo de confianza,
+            en un horizonte directo de 6 meses.
             """)
             
             st.markdown("### Variables de Entrada")
