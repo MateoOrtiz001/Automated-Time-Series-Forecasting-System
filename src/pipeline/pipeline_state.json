@@ -1,6 +1,6 @@
 {
-  "last_download": "2026-08-17T02:23:36.695307",
-  "last_prediction": "2026-08-17T02:23:40.039207",
+  "last_download": "2026-09-17T05:45:02.901011",
+  "last_prediction": "2026-09-17T05:45:04.918953",
   "last_finetune": "2026-07-17T04:05:22.147822",
   "finetune_count": 3,
   "current_model": "tft_best.keras",
@@ -130,6 +130,13 @@
       "model": "tft_best.keras",
       "csv_path": "/app/misc/results/predictions_20260817_022339.csv",
       "plot_path": "/app/misc/results/predictions_plot_20260817_022339.png"
+    },
+    {
+      "timestamp": "2026-09-17T05:45:04.919442",
+      "type": "prediction",
+      "model": "tft_best.keras",
+      "csv_path": "/app/misc/results/predictions_20260917_054504.csv",
+      "plot_path": "/app/misc/results/predictions_plot_20260917_054504.png"
     }
   ]
 }
