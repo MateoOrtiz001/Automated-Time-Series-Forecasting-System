@@ -140,6 +140,23 @@ VARIABLE_DESCRIPTIONS = {
 
 
 # FEATURE ENGINEERING
+def get_forecast_dates(
+    n_months: int,
+    reference_date: datetime | pd.Timestamp | None = None,
+) -> pd.DatetimeIndex:
+    """Genera fechas mensuales después del mes de ejecución."""
+    if reference_date is None:
+        reference_date = datetime.now()
+
+    current_month = pd.Timestamp(reference_date).to_period("M").to_timestamp(how="start")
+    first_forecast_month = current_month + pd.offsets.MonthBegin(1)
+    return pd.date_range(
+        start=first_forecast_month,
+        periods=n_months,
+        freq="MS",
+    )
+
+
 def add_calendar_features(df: pd.DataFrame) -> pd.DataFrame:
     """Agrega features de calendario determinísticos (conocidos a futuro).
     
@@ -877,8 +894,15 @@ def download_all_data(logger: logging.Logger) -> bool:
 
 
 # FUNCIONES DE MODELO
-def load_model(logger: logging.Logger, state: PipelineState) -> Tuple[TFTModel, str]:
-    """Carga el modelo más reciente (base o fine-tuned)."""
+def load_model(
+    logger: logging.Logger,
+    state: PipelineState,
+    model_path: Optional[str] = None,
+) -> Tuple[TFTModel, str]:
+    """Carga el modelo más reciente (base o fine-tuned).
+
+    Si se provee ``model_path``, se intenta primero esa ruta (absoluta o relativa).
+    """
     models_dir = CONFIG["pipeline_models_dir"]
     root_models_dir = CONFIG["models_dir"]
 
@@ -907,8 +931,21 @@ def load_model(logger: logging.Logger, state: PipelineState) -> Tuple[TFTModel, 
     )
     
     # Probar candidatos en orden de preferencia con fallback robusto
+    explicit_candidates: List[Path] = []
+    if model_path:
+        requested = Path(model_path)
+        if requested.is_absolute():
+            explicit_candidates = [requested]
+        else:
+            explicit_candidates = [
+                models_dir / requested,
+                root_models_dir / requested,
+                ROOT_DIR / requested,
+            ]
+
     candidate_paths: List[Path] = []
     for candidate in [
+        *explicit_candidates,
         models_dir / current_model,
         root_models_dir / current_model,
         models_dir / CONFIG["base_model"],
@@ -1033,12 +1070,7 @@ def predict_future(
     X_past = current_window_std[np.newaxis, :, :]  # (1, lookback, n_features)
     
     # Preparar entrada del decoder (features futuras)
-    last_date = df["date"].iloc[-1]
-    future_dates = pd.date_range(
-        start=last_date + pd.DateOffset(months=1),
-        periods=n_months,
-        freq="MS",
-    )
+    future_dates = get_forecast_dates(n_months)
     
     # Construir features futuras
     X_future = np.zeros((1, n_months, len(future_feature_cols)), dtype=np.float32)
@@ -1093,6 +1125,21 @@ def predict_future(
         })
     
     pred_df = pd.DataFrame(predictions)
+
+    if pred_df["lower"].notna().any() and pred_df["upper"].notna().any():
+        avg_interval = float((pred_df["upper"] - pred_df["lower"]).mean())
+        recent_std = float(df[CONFIG["target_col"]].tail(24).std())
+        if recent_std > 1e-6:
+            ratio = avg_interval / recent_std
+            logger.info(
+                f"Ancho medio IC q10-q90={avg_interval:.4f} | "
+                f"std histórica (24m)={recent_std:.4f} | ratio={ratio:.3f}"
+            )
+            if ratio < 0.20:
+                logger.warning(
+                    "Intervalos de confianza estrechos respecto a la volatilidad reciente. "
+                    "Puede indicar alta certeza del modelo o subestimación de incertidumbre."
+                )
     
     logger.info(f"\nPredicciones ({CONFIG['target_col']}) — ventana fija de {n_months} meses:")
     for _, row in pred_df.iterrows():
@@ -1439,7 +1486,7 @@ def run_pipeline(
         logger = setup_logging()
     
     state = PipelineState()
-    results = {"success": True, "errors": [], "cleanup": {}}
+    results = {"success": True, "errors": [], "warnings": [], "cleanup": {}}
     
     logger.info("\n" + "=" * 70)
     logger.info("PIPELINE MENSUAL DE PREDICCIÓN DE INFLACIÓN")
@@ -1455,7 +1502,7 @@ def run_pipeline(
             download_success = download_all_data(logger)
             state.update("last_download", datetime.now().isoformat())
             if not download_success:
-                results["errors"].append("Algunos datos no se descargaron correctamente")
+                results["warnings"].append("Algunos datos no se descargaron correctamente")
             
             if cleanup:
                 logger.info("\n[POST-DOWNLOAD] Limpiando datos antiguos...")
@@ -1494,6 +1541,11 @@ def run_pipeline(
         except Exception as e:
             logger.error(f"Error en fine-tuning: {e}")
             results["errors"].append(str(e))
+            if force_finetune:
+                results["success"] = False
+                logger.error("Fine-tuning forzado falló. Se aborta la predicción.")
+                return results
+            logger.warning("Se continuará con el modelo actual sin fine-tuning.")
     
     # Predicción
     if predict:
@@ -1542,6 +1594,10 @@ def run_pipeline(
     logger.info("\n" + "=" * 70)
     if results["success"] and not results["errors"]:
         logger.info("✓ PIPELINE COMPLETADO EXITOSAMENTE")
+        if results["warnings"]:
+            logger.warning(f"⚠ Advertencias: {len(results['warnings'])}")
+            for warn in results["warnings"]:
+                logger.warning(f"   - {warn}")
     elif results["errors"]:
         logger.warning(f"⚠ PIPELINE COMPLETADO CON ADVERTENCIAS: {len(results['errors'])} errores")
         for err in results["errors"]:

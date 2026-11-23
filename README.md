@@ -120,7 +120,7 @@ The system includes a GitHub Actions workflow that automatically runs the pipeli
 ┌─────────────────────────────────────────────────────────────────┐
 │              AUTOMATED MONTHLY WORKFLOW                          │
 ├─────────────────────────────────────────────────────────────────┤
-│  Day 5 of each month (10:00 UTC):                               │
+│  Day 17 of each month (01:00 UTC):                              │
 │                                                                  │
 │  1. GitHub Actions triggers the workflow                        │
 │  2. Pipeline downloads data from BanRep, FAO, FRED              │

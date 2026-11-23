@@ -32,7 +32,12 @@ from plotly.subplots import make_subplots
 from datetime import datetime
 
 from src.model.model import TFTModel
-from src.pipeline.core import add_calendar_features, forecast_all_covariates, get_scaler_stats
+from src.pipeline.core import (
+    add_calendar_features,
+    forecast_all_covariates,
+    get_forecast_dates,
+    get_scaler_stats,
+)
 
 # =============================================================================
 # CONFIGURACIÓN
@@ -143,7 +148,7 @@ def get_latest_data_hash():
         if df is not None:
             max_date = df["date"].max()
             return f"{max_date.strftime('%Y%m%d')}_{len(df)}"
-    except:
+    except Exception:
         pass
     return "default"
 
@@ -186,7 +191,7 @@ def get_latest_model_name():
             if finetuned:
                 return finetuned[0].name
         return "tft_base.keras"
-    except:
+    except Exception:
         return "default"
 
 
@@ -292,13 +297,17 @@ def load_pipeline_state():
 
 
 def load_latest_predictions():
-    """Carga las predicciones más recientes."""
+    """Carga las predicciones más recientes si siguen el horizonte actual."""
     if not MISC_RESULTS_DIR.exists():
         return None
-    
+
     latest_file = MISC_RESULTS_DIR / "predictions_latest.csv"
     if latest_file.exists():
         df = pd.read_csv(latest_file, parse_dates=["date"])
+        expected_dates = get_forecast_dates(CONFIG["future_months"])
+        stored_dates = pd.DatetimeIndex(df["date"])
+        if not stored_dates.equals(expected_dates):
+            return None
         return df
     
 
@@ -332,12 +341,7 @@ def generate_predictions(model, df, n_months=None, covariate_forecasts=None):
     X_past = current_window_std[np.newaxis, :, :]  # (1, lookback, n_features)
     
     # Preparar entrada del decoder (features futuras)
-    last_date = df["date"].iloc[-1]
-    future_dates = pd.date_range(
-        start=last_date + pd.DateOffset(months=1),
-        periods=n_months,
-        freq="MS",
-    )
+    future_dates = get_forecast_dates(n_months)
     
     # Pronosticar todas las covariables futuras
     covariate_forecasts = covariate_forecasts or forecast_all_covariates(df, n_steps=n_months)
@@ -404,12 +408,7 @@ def generate_future_covariates_df(df, n_months=None, forecasts=None):
     if "sin_month" not in df.columns:
         df = add_calendar_features(df)
 
-    last_date = df["date"].iloc[-1]
-    future_dates = pd.date_range(
-        start=last_date + pd.DateOffset(months=1),
-        periods=n_months,
-        freq="MS",
-    )
+    future_dates = get_forecast_dates(n_months)
 
     forecasts = forecasts or forecast_all_covariates(df, n_steps=n_months)
     covariate_cols = list(CONFIG.get("future_forecast_cols", {}).keys())

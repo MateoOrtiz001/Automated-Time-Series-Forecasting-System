@@ -140,7 +140,7 @@ class Orchestrator:
         """
         self._header("PREDICCIÓN")
         
-        model, model_name = load_model(self.logger, self.state)
+        model, model_name = load_model(self.logger, self.state, model_path=model_path)
         df, feature_cols = prepare_data(self.logger)
         mean, std, mean_f, std_f, mean_y, std_y = get_scaler_stats(df, feature_cols, self.logger)
         

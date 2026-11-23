@@ -259,7 +259,7 @@ class TFTModel:
         lookback_steps: int,
         forecast_horizon: int = 1,
         future_feature_cols: Optional[Iterable[str]] = None,
-    ) -> Tuple[np.ndarray, np.ndarray]:
+    ) -> Tuple[np.ndarray, np.ndarray, Optional[np.ndarray]]:
         """
         Convierte un DataFrame (ordenado por fecha) en (X, y) para TS supervised.
 
