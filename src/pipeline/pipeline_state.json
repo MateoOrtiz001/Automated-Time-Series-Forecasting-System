@@ -1,6 +1,6 @@
 {
   "last_download": "2026-11-17T08:45:15.872292",
-  "last_prediction": "2026-11-17T08:45:19.161118",
+  "last_prediction": "2026-11-22T23:23:04.162270",
   "last_finetune": "2026-10-17T05:19:31.451351",
   "finetune_count": 4,
   "current_model": "tft_best.keras",
@@ -151,6 +151,13 @@
       "model": "tft_best.keras",
       "csv_path": "/app/misc/results/predictions_20261117_084518.csv",
       "plot_path": "/app/misc/results/predictions_plot_20261117_084518.png"
+    },
+    {
+      "timestamp": "2026-11-22T23:23:04.163274",
+      "type": "prediction",
+      "model": "tft_best.keras",
+      "csv_path": "C:\\Users\\mateo\\Repositorios\\Automated Time-series\\Automated-Time-Series-Forecasting-System\\misc\\results\\predictions_20261122_232303.csv",
+      "plot_path": "C:\\Users\\mateo\\Repositorios\\Automated Time-series\\Automated-Time-Series-Forecasting-System\\misc\\results\\predictions_plot_20261122_232303.png"
     }
   ]
 }

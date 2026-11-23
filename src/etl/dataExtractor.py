@@ -1130,7 +1130,7 @@ def consolidar_suameca_json_a_csv_mensual(
     fao_csv: str | Path | None = None,
     periodicity_priority: tuple[int, ...] = (22, 9, 12, 18),
     align_start: str = "max",
-    align_end: str = "min",
+    align_end: str = "max",
     fill_missing_months: bool = True,
     verbose: bool = False,
 ) -> dict[str, Any]:

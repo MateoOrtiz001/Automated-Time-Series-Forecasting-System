@@ -1503,6 +1503,10 @@ def run_pipeline(
             state.update("last_download", datetime.now().isoformat())
             if not download_success:
                 results["warnings"].append("Algunos datos no se descargaron correctamente")
+                logger.warning(
+                    "Se conservaron los datos disponibles previos; revise los logs de descarga "
+                    "y no interprete un rango antiguo como datos publicados recientemente."
+                )
             
             if cleanup:
                 logger.info("\n[POST-DOWNLOAD] Limpiando datos antiguos...")

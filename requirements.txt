@@ -15,6 +15,7 @@ selenium>=4.18.0
 # Visualization
 matplotlib>=3.8.0
 plotly>=5.18.0
+pyarrow>=12.0.0,<21.0.0
 
 # Web App
 streamlit>=1.31.0
