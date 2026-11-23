@@ -31,13 +31,35 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from datetime import datetime
 
-from src.model.model import TFTModel
-from src.pipeline.core import (
-    add_calendar_features,
-    forecast_all_covariates,
-    get_forecast_dates,
-    get_scaler_stats,
-)
+TFTModel = None
+add_calendar_features = None
+forecast_all_covariates = None
+get_scaler_stats = None
+IMPORT_ERROR = None
+
+try:
+    from src.model.model import TFTModel
+except Exception as exc:
+    IMPORT_ERROR = f"No se pudo cargar el modelo TFT: {exc}"
+
+try:
+    from src.pipeline.core import (
+        add_calendar_features,
+        forecast_all_covariates,
+        get_forecast_dates,
+        get_scaler_stats,
+    )
+except Exception as exc:
+    core_error = f"No se pudo cargar el pipeline: {exc}"
+    IMPORT_ERROR = core_error if IMPORT_ERROR is None else f"{IMPORT_ERROR} | {core_error}"
+
+
+def get_forecast_dates(n_months, reference_date=None):
+    """Crea el horizonte futuro sin depender del último dato histórico."""
+    reference_date = reference_date or datetime.now()
+    current_month = pd.Timestamp(reference_date).to_period("M").to_timestamp(how="start")
+    first_month = current_month + pd.offsets.MonthBegin(1)
+    return pd.date_range(start=first_month, periods=n_months, freq="MS")
 
 # =============================================================================
 # CONFIGURACIÓN
@@ -87,6 +109,25 @@ CONFIG = {
     ],
     "covariate_forecast_steps": 6,
 }
+
+if add_calendar_features is None:
+    def add_calendar_features(df):
+        df = df.copy()
+        month = df["date"].dt.month
+        df["sin_month"] = np.sin(2 * np.pi * month / 12).astype(np.float32)
+        df["cos_month"] = np.cos(2 * np.pi * month / 12).astype(np.float32)
+        return df
+
+
+if forecast_all_covariates is None:
+    def forecast_all_covariates(df, n_steps=None, logger=None):
+        n_steps = n_steps or CONFIG["future_months"]
+        forecasts = {}
+        for col in CONFIG["future_forecast_cols"]:
+            if col in df.columns:
+                forecasts[col] = np.full(n_steps, float(df[col].iloc[-1]), dtype=np.float32)
+        return forecasts
+
 
 # Descripciones de variables
 VARIABLE_INFO = {
@@ -163,7 +204,9 @@ def load_data_internal():
         return df.dropna().reset_index(drop=True)
     
     # Fallback: buscar el CSV más reciente por timestamp
-    return TFTModel.load_latest_proc_csv(DATA_PROC_DIR)
+    if TFTModel is not None:
+        return TFTModel.load_latest_proc_csv(DATA_PROC_DIR)
+    return None
 
 
 @st.cache_data(ttl=300)  # 5 minutos de TTL
@@ -332,7 +375,13 @@ def generate_predictions(model, df, n_months=None, covariate_forecasts=None):
     feature_cols = [c for c in df.columns if c != "date"]
     
     # Cargar estadísticas de estandarización guardadas
-    mean, std, mean_f, std_f, mean_y, std_y = get_scaler_stats(df, feature_cols, logger=None)
+    if get_scaler_stats is None:
+        data_features = df[feature_cols].to_numpy(dtype=np.float32)
+        mean = data_features.mean(axis=0)
+        std = np.where(data_features.std(axis=0) < 1e-6, 1.0, data_features.std(axis=0))
+        mean_f = std_f = mean_y = std_y = None
+    else:
+        mean, std, mean_f, std_f, mean_y, std_y = get_scaler_stats(df, feature_cols, logger=None)
     
     # Preparar entrada del encoder (lookback)
     data_features = df[feature_cols].to_numpy(dtype=np.float32)
@@ -662,6 +711,11 @@ def plot_future_covariates_selected(df_cov, selected_covariates):
 # APLICACIÓN PRINCIPAL
 # =============================================================================
 def main():
+    if IMPORT_ERROR:
+        st.warning("Se cargó el dashboard sin todos los componentes de predicción.")
+        with st.expander("Detalle técnico"):
+            st.code(IMPORT_ERROR)
+
     # Header
     st.title("Sistema de Predicción de Inflación")
     st.markdown("**Colombia - Modelo TFT (Temporal Fusion Transformer)**")
@@ -746,7 +800,7 @@ def main():
             
             # Cargar o generar predicciones (con caché que se invalida cuando hay modelo nuevo)
             model_cache_key = f"{get_latest_model_name()}_{data_cache_key}"
-            model, model_name = load_model(_model_key=model_cache_key)
+            model, model_name = (None, None) if TFTModel is None else load_model(_model_key=model_cache_key)
 
             covariate_forecasts = None
             if model is not None:
